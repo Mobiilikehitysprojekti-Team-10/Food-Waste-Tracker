@@ -91,7 +91,7 @@ export default function WasteReportScreen() {
         onPress={onSubmit}
         disabled={loading}
       >
-        <Text style={styles.submitText}>{loading ? "Tallennetaan..." : "Submit"}</Text>
+        <Text style={styles.submitText}>{loading ? "Saving..." : "Submit"}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

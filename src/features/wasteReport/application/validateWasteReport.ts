@@ -8,10 +8,10 @@ export function validateWasteReport(input: {
 }): { ok: true; items: Array<{ waste_type: WasteType; kg: number }> } | { ok: false; message: string } {
   const { locationId, rows } = input;
 
-  if (!locationId) return { ok: false, message: "Valitse toimipiste." };
+  if (!locationId) return { ok: false, message: "Select a location." };
 
   const anySelected = WASTE_TYPES.some((w) => rows[w.type].selected);
-  if (!anySelected) return { ok: false, message: "Valitse vähintään yksi jätelaji." };
+  if (!anySelected) return { ok: false, message: "Select at least one waste type." };
 
   const items: Array<{ waste_type: WasteType; kg: number }> = [];
   for (const { type, label } of WASTE_TYPES) {
@@ -19,7 +19,7 @@ export function validateWasteReport(input: {
     if (!r.selected) continue;
     const kg = normalizeKg(r.kgText);
     if (kg === null || kg <= 0) {
-      return { ok: false, message: `Anna jätelajille "${label}" kilomäärä (kg > 0).` };
+      return { ok: false, message: `Enter the amount in kilograms (kg > 0) for waste type "${label}".` };
     }
     items.push({ waste_type: type, kg });
   }
