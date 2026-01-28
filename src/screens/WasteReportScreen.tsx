@@ -65,7 +65,7 @@ export default function WasteReportScreen() {
       <Text style={styles.label}>Select location</Text>
       <View style={styles.pickerWrap}>
         <Picker selectedValue={locationId} onValueChange={(v) => setLocationId(String(v))}>
-          <Picker.Item label="Valitse toimipiste..." value="" />
+          <Picker.Item label="Select location" value="" />
           {locations.map((l) => (
             <Picker.Item key={l.id} label={l.name} value={l.id} />
           ))}
