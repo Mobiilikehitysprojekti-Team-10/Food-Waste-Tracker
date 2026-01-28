@@ -2,6 +2,8 @@ import React, { useContext, useMemo, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AuthContext } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+import { useLanguage } from "../context/LanguageContext";
 
 import { useCustomCompare } from "../features/wasteReport/reports/compare/application/useCustomCompare";
 import { DayPickerModal } from "../features/wasteReport/reports/compare/presentation/components/DayPickerModal";
@@ -39,6 +41,8 @@ import { WASTE_TYPES } from "../features/wasteReport/domain";
 
 export default function CompareScreen() {
   const { user } = useContext(AuthContext);
+  const { colors } = useTheme();
+  const { t } = useLanguage();
   const ownerUid = user?.name ?? "dev-user";
 
   const [selection, setSelection] = useState("");
@@ -107,11 +111,11 @@ export default function CompareScreen() {
   const [groupedOpen, setGroupedOpen] = useState(false);
 
   return (
-    <ScreenLayout title="Compare">
+    <ScreenLayout title={t('compare') || "Compare"}>
       {errorText ? <ErrorBox message={errorText} /> : null}
 
-      <Card title="Filters" subtitle="Choose location and period">
-        <Text style={styles.label}>Select business location</Text>
+      <Card title={t('filters') || "Filters"} subtitle={t('choose_location_period') || "Choose location and period"}>
+        <Text style={[styles.label, { color: colors.text }]}>{t('select_location')}</Text>
 
         <SelectionPicker
           value={selection}
@@ -120,8 +124,8 @@ export default function CompareScreen() {
           favorites={favorites}
         />
 
-        <Text style={styles.subTitle}>
-          {loading ? "Loading..." : selectionLabel ? `Showing: ${selectionLabel}` : ""}
+        <Text style={[styles.subTitle, { color: colors.text }]}>
+          {loading ? t('loading') : selectionLabel ? `${t('showing')}: ${selectionLabel}` : ""}
         </Text>
 
         <PresetPicker
@@ -162,10 +166,10 @@ export default function CompareScreen() {
       </Card>
 
       {locationIds.length === 0 ? (
-        <EmptyBox text="Select locations" />
+        <EmptyBox text={t('select_locations')} />
       ) : (
         <>
-          <Card title="Overall Comparison">
+          <Card title={t('overall_comparison') || "Overall Comparison"}>
             <CompareLegend aLabel={aLabel} bLabel={bLabel} />
             <ComparisonSummary
               wasteTypes={wasteTypes}
@@ -179,10 +183,10 @@ export default function CompareScreen() {
           {loading ? (
             <LoadingBox />
           ) : tableRows.length === 0 ? (
-            <EmptyBox text="Ei vertailudataa valinnalle" />
+            <EmptyBox text={t('no_comparison_data') || "No comparison data"} />
           ) : (
             <>
-              <Card title="Chart (A vs B)" subtitle="Two bars per waste type">
+              <Card title={`${t('chart') || 'Chart'} (A vs B)`} subtitle={t('two_bars_per_type') || "Two bars per waste type"}>
                 <Pressable onPress={() => setGroupedOpen(true)}>
                   <GroupedBarChart
                     data={groupedData}
@@ -191,11 +195,11 @@ export default function CompareScreen() {
                     aLabel="A"
                     bLabel="B"
                   />
-                  <Text style={styles.hint}>Tap chart to enlarge</Text>
+                  <Text style={[styles.hint, { color: colors.secondary }]}>{t('tap_to_enlarge')}</Text>
                 </Pressable>
               </Card>
 
-              <Card title="Details" subtitle="Per waste type">
+              <Card title={t('details')} subtitle={t('totals_by_type')}>
                 <ComparisonTable rows={tableRows} aLabel="A" bLabel="B" />
               </Card>
             </>
@@ -203,7 +207,6 @@ export default function CompareScreen() {
         </>
       )}
 
-      {/* ✅ Grouped chart modal */}
       <Modal
         visible={groupedOpen}
         transparent
@@ -213,8 +216,8 @@ export default function CompareScreen() {
       >
         <Pressable style={styles.modalBackdrop} onPress={() => setGroupedOpen(false)} />
         <View style={styles.modalCenter} pointerEvents="box-none">
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{`Compare – ${selectionLabel || ""}`}</Text>
+          <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{`${t('compare')} – ${selectionLabel || ""}`}</Text>
 
             <GroupedBarChart
               data={groupedData}
@@ -224,8 +227,8 @@ export default function CompareScreen() {
               bLabel={bLabel}
             />
 
-            <Pressable style={styles.modalBtn} onPress={() => setGroupedOpen(false)}>
-              <Text style={styles.modalBtnText}>Close</Text>
+            <Pressable style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setGroupedOpen(false)}>
+              <Text style={[styles.modalBtnText, { color: colors.text }]}>{t('close') || 'Close'}</Text>
             </Pressable>
           </View>
         </View>
@@ -233,7 +236,7 @@ export default function CompareScreen() {
 
       <DayPickerModal
         visible={openDay === "A"}
-        title="Valitse päivä (A)"
+        title={`${t('select_day') || 'Select day'} (A)`}
         value={custom.dayA}
         onChange={(d) => custom.setDayA(d)}
         onClose={() => setOpenDay(null)}
@@ -241,7 +244,7 @@ export default function CompareScreen() {
 
       <DayPickerModal
         visible={openDay === "B"}
-        title="Valitse päivä (B)"
+        title={`${t('select_day') || 'Select day'} (B)`}
         value={custom.dayB}
         onChange={(d) => custom.setDayB(d)}
         onClose={() => setOpenDay(null)}
@@ -253,17 +256,14 @@ export default function CompareScreen() {
 const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: "700" },
   subTitle: { fontSize: 16, fontWeight: "600", marginTop: 8 },
-
   hint: {
     marginTop: 8,
     fontSize: 12,
-    color: "#666",
     textAlign: "center",
   },
-
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   modalCenter: {
     flex: 1,
@@ -271,11 +271,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   modalCard: {
-    backgroundColor: "#fff",
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
   modalTitle: {
     fontSize: 16,
@@ -287,7 +285,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     alignSelf: "center",
     borderWidth: 1,
-    borderColor: "#333",
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -299,5 +296,3 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
-
-

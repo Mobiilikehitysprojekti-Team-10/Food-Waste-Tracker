@@ -9,7 +9,6 @@ export const Routes = {
   WasteReport: "WasteReport",
   Complaints: "Complaints",
   ComplaintsReplay: "ComplaintsReplay",
-  ComplaintsList: "ComplaintsList",
   AddComplaint: "AddComplaint",
   Staff: "Staff",
   StaffEdit: "StaffEdit",

@@ -66,8 +66,8 @@ function EmployeeStack() {
       <Stack.Screen name={Routes.EmployeeHome} component={EmployeeHome} options={{ title: "Työntekijä", headerTitleAlign: "center", }} />
       <Stack.Screen name={Routes.WasteReport} component={WasteReportScreen} options={{ title: "Waste report", headerTitleAlign: "center", }} />
       <Stack.Screen name={Routes.Complaints} component={ComplaintsScreen} />
-      <Stack.Screen name={Routes.ComplaintsList} component={ComplaintsReplay} options={{ title: "Valitukset", headerTitleAlign: "center" }} />
-      <Stack.Screen name={Routes.AddComplaint} component={AddComplaintScreen} options={{ title: "Uusi valitus", headerTitleAlign: "center" }} />
+      <Stack.Screen name={Routes.ComplaintsReplay} component={ComplaintsReplay} options={{ title: "Complaints - Review", headerTitleAlign: "center" }}/>
+      <Stack.Screen name={Routes.AddComplaint} component={AddComplaintScreen} options={{ title: "New Complaint", headerTitleAlign: "center" }} />
       <Stack.Screen name={Routes.Menu} component={MenuScreen} />
       <Stack.Screen name={Routes.Settings} component={SettingsScreen} />
     </Stack.Navigator>
