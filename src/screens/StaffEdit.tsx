@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { supabase } from '../lib/supabase';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const StaffEdit = ({ route, navigation }: any) => {
   const { person } = route.params;
-  const [name, setName] = useState(person.name);
+  const { colors } = useTheme();
+  const { t } = useLanguage();
   
-  // Tilat kouluille (locations-taulukosta)
+  const [name, setName] = useState(person.name);
   const [locations, setLocations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Haetaan koulut Supabasen locations-taulukosta
   useEffect(() => {
     const fetchLocations = async () => {
       try {
@@ -33,60 +35,55 @@ const StaffEdit = ({ route, navigation }: any) => {
           setLocations(formatted);
         }
       } catch (error: any) {
-        console.error("Virhe locations-haussa:", error.message);
-        Alert.alert("Virhe", "Toimipisteitä ei voitu hakea.");
+        Alert.alert(t('error'), t('fetch_failed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchLocations();
-  }, [person.info]);
+  }, [person.info, t]);
 
-  // 2. Vaihdetaan checkboxin tilaa
   const toggleLocation = (id: string) => {
     setLocations(prev => prev.map(loc => 
       loc.id === id ? { ...loc, selected: !loc.selected } : loc
     ));
   };
 
-  // 3. Tallennus (Tässä vaiheessa loggaus, koska käyttäjät ovat Firebasessa)
   const handleSave = () => {
     const selectedNames = locations
       .filter(loc => loc.selected)
       .map(loc => loc.name);
 
-    console.log("Tallennetaan käyttäjä:", name);
-    console.log("Valitut toimipisteet:", selectedNames);
-
-    // TODO: Päivitä uusi nimi ja toimipistekokonaisuus Firebaseen/profiiliin
-    Alert.alert("Tallennettu", `Henkilön ${name} tiedot päivitetty.`);
+    // TODO: Firebase-päivitys
+    Alert.alert(t('saved'), `${t('info_updated')}: ${name}`);
     navigation.goBack();
   };
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#4630EB" />
-        <Text style={{marginTop: 10}}>Ladataan toimipisteitä...</Text>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ marginTop: 10, color: colors.text }}>{t('loading_locations')}</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.headerText}>Staff - Edit</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.headerText, { color: colors.text }]}>{t('staff_edit')}</Text>
       
       <TextInput 
-        style={styles.input} 
+        style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.card }]} 
         value={name} 
         onChangeText={setName}
-        placeholder="Employee Name"
+        placeholder={t('employee_name_placeholder')}
+        placeholderTextColor={colors.secondary}
       />
       
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionText}>Sectors</Text>
-        <Text>▼</Text>
+      <View style={[styles.sectionHeader, { borderColor: colors.border, backgroundColor: colors.card }]}>
+        <Text style={[styles.sectionText, { color: colors.text }]}>{t('select_location')}</Text>
+        <Text style={{ color: colors.text }}>▼</Text>
       </View>
 
       <View style={styles.checkboxList}>
@@ -95,40 +92,42 @@ const StaffEdit = ({ route, navigation }: any) => {
             <Checkbox
               value={loc.selected}
               onValueChange={() => toggleLocation(loc.id)}
-              color={loc.selected ? '#4630EB' : undefined}
+              color={loc.selected ? colors.primary : undefined}
               style={styles.checkbox}
             />
-            <Text style={styles.label}>{loc.name}</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{loc.name}</Text>
           </View>
         ))}
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Save</Text>
+      <TouchableOpacity 
+        style={[styles.saveButton, { backgroundColor: colors.primary, borderColor: colors.primary }]} 
+        onPress={handleSave}
+      >
+        <Text style={[styles.saveButtonText, { color: '#fff' }]}>{t('save')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 25, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 25 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   headerText: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 30 },
   input: { 
     borderWidth: 1, 
-    borderColor: '#000', 
     padding: 12, 
     marginBottom: 20, 
-    fontSize: 16 
+    fontSize: 16,
+    borderRadius: 8
   },
   sectionHeader: { 
     borderWidth: 1, 
-    borderColor: '#000', 
     padding: 12, 
     flexDirection: 'row', 
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    marginBottom: 15
+    marginBottom: 15,
+    borderRadius: 8
   },
   sectionText: { fontSize: 16 },
   checkboxList: { marginLeft: 5 },
@@ -136,17 +135,15 @@ const styles = StyleSheet.create({
   checkbox: { marginRight: 10 },
   label: { fontSize: 16 },
   saveButton: { 
-    backgroundColor: '#E0E0E0', 
-    borderWidth: 1, 
-    borderColor: '#000',
-    padding: 12, 
+    padding: 14, 
     alignItems: 'center', 
     marginTop: 40,
-    width: '60%',
+    width: '70%',
     alignSelf: 'center',
-    borderRadius: 5
+    borderRadius: 10,
+    elevation: 2
   },
-  saveButtonText: { fontSize: 16, fontWeight: '500' }
+  saveButtonText: { fontSize: 16, fontWeight: 'bold' }
 });
 
 export default StaffEdit;

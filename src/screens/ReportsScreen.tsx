@@ -4,6 +4,8 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/types";
 import { Routes } from "../navigation/routes";
+import { useTheme } from "../context/ThemeContext";
+import { useLanguage } from "../context/LanguageContext";
 
 import {
   ScreenLayout,
@@ -17,8 +19,6 @@ import {
   TableCard,
   FavoriteDeleteButton,
 } from "../features/wasteReport/reports/presentation/components";
-
-
 
 import { AuthContext } from "../context/AuthContext";
 
@@ -76,6 +76,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function ReportsScreen() {
   const navigation = useNavigation<Nav>();
   const { user } = useContext(AuthContext);
+  const { colors } = useTheme();
+  const { t } = useLanguage();
 
   const ownerUid =
     (user?.uid as string | undefined) ||
@@ -113,7 +115,6 @@ export default function ReportsScreen() {
   }, [visibleTypeDefs, totalsByType]);
 
   const tableRows = useMemo(() => {
-    
     return visibleTypeDefs.map((w) => ({
       label: w.label,
       value: Number(totalsByType[w.type] ?? 0),
@@ -128,9 +129,9 @@ export default function ReportsScreen() {
       const fallback = locations?.[0]?.id ? `loc:${locations[0].id}` : "";
       setSelection(fallback);
 
-      Alert.alert("Deleted", "Favorite list deleted.");
+      Alert.alert(t('deleted'), t('favorite_deleted'));
     } catch (e) {
-      Alert.alert("Error", errorMessage(e));
+      Alert.alert(t('error'), errorMessage(e));
     }
   };
 
@@ -140,7 +141,10 @@ export default function ReportsScreen() {
         ? selection.substring(4)
         : null;
     if (favoriteId) {
-      onConfirmDeleteFavorite(favoriteId);
+      Alert.alert(t('delete'), t('confirm_delete_favorite'), [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('delete'), style: 'destructive', onPress: () => onConfirmDeleteFavorite(favoriteId) }
+      ]);
     }
   };
 
@@ -161,13 +165,13 @@ export default function ReportsScreen() {
   const error = scopeError || totalsError;
 
   return (
-    <ScreenLayout title="Reports">
+    <ScreenLayout title={t('reports')}>
       <ActionRow
         onCreateFavorite={() => navigation.navigate(Routes.ReportsFavorite)}
         onCompare={() => navigation.navigate(Routes.Compare)}
       />
 
-      <Text style={styles.label}>Select business location / Favorite</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('select_location_or_favorite')}</Text>
       <SelectionPicker
         value={selection}
         onChange={setSelection}
@@ -177,7 +181,7 @@ export default function ReportsScreen() {
 
       <WeekHeader
         label={weekRange.label}
-        subtitle={selectionLabel ? `Showing: ${selectionLabel}` : undefined}
+        subtitle={selectionLabel ? `${t('showing')}: ${selectionLabel}` : undefined}
       />
 
       {error && <ErrorBox message={errorMessage(error)} />}
@@ -185,24 +189,24 @@ export default function ReportsScreen() {
       {loading ? (
         <LoadingBox />
       ) : locationIds.length === 0 ? (
-        <EmptyBox text="Select locations" />
-      ) : totalsByType.length === 0 ? (
-        <EmptyBox text="No data for this selection for this week" />
+        <EmptyBox text={t('select_locations')} />
+      ) : Object.keys(totalsByType).length === 0 ? (
+        <EmptyBox text={t('no_data_week')} />
       ) : (
         <>
           <ChartCard
-            title="Weekly totals"
-            subtitle="Tap to enlarge"
+            title={t('weekly_totals')}
+            subtitle={t('tap_to_enlarge')}
             data={chartData}
             onPressChart={() => setChartOpen(true)}
           />
 
           <TableCard
-            title="Details"
-            subtitle="Totals by waste type"
+            title={t('details')}
+            subtitle={t('totals_by_type')}
             rows={tableRows}
             showEmpty={!loading && !!selection}
-            emptyText="No data for current week"
+            emptyText={t('no_data_week')}
             footer={
               <FavoriteDeleteButton
                 visible={isFavoriteSelected}
@@ -216,7 +220,7 @@ export default function ReportsScreen() {
       <ChartModal
         visible={chartOpen}
         onClose={() => setChartOpen(false)}
-        title={`Reports – ${selectionLabel || "Selection"} (${weekRange.label})`}
+        title={`${t('reports')} – ${selectionLabel || "Selection"} (${weekRange.label})`}
         chartData={chartData}
       />
     </ScreenLayout>
@@ -235,6 +239,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 2,
     marginBottom: 4,
-    color: "#333",
   },
 });
