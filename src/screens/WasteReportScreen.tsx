@@ -70,15 +70,10 @@ export default function WasteReportScreen() {
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>{t('waste_report')}</Text>
 
-      <Text style={[styles.label, { color: colors.text }]}>{t('select_location')}</Text>
-      <View style={[styles.pickerWrap, { borderColor: colors.border, backgroundColor: colors.card }]}>
-        <Picker 
-          selectedValue={locationId} 
-          onValueChange={(v) => setLocationId(String(v))}
-          dropdownIconColor={colors.text}
-          style={{ color: colors.text }}
-        >
-          <Picker.Item label={t('select_location_dots')} value="" color={colors.secondary} />
+      <Text style={styles.label}>Select location</Text>
+      <View style={styles.pickerWrap}>
+        <Picker selectedValue={locationId} onValueChange={(v) => setLocationId(String(v))}>
+          <Picker.Item label="Select location" value="" />
           {locations.map((l) => (
             <Picker.Item key={l.id} label={l.name} value={l.id} color={colors.text} />
           ))}
