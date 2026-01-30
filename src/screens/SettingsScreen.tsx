@@ -1,3 +1,4 @@
+import { useLocationContext } from "../context/LocationContext";
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +16,8 @@ type Props = NativeStackScreenProps<RootStackParamList, typeof Routes.Settings>;
 const SettingsScreen = ({ navigation }: Props) => {
   const { user, logout } = React.useContext(AuthContext);
   const { isDark, toggleTheme, colors } = useTheme();
-  const { t, language, setLanguage } = useLanguage(); 
+  const { t, language, setLanguage } = useLanguage();
+  const { consent, requestConsentAndPermissions, disableLocation, openSystemSettings } = useLocationContext(); 
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
@@ -48,7 +50,6 @@ const SettingsScreen = ({ navigation }: Props) => {
   }
 
   const result = await ImagePicker.launchCameraAsync({
-    // Käytetään uusinta enum-tapaa
     mediaTypes: ImagePicker.MediaTypeOptions.Images, 
     allowsEditing: true,
     aspect: [1, 1],
@@ -68,7 +69,6 @@ const pickFromGallery = async () => {
   }
 
   const result = await ImagePicker.launchImageLibraryAsync({
-    // Varmistetaan että käytetään oikeaa tyyppiä tässäkin
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
     allowsEditing: true,
     aspect: [1, 1],
@@ -103,15 +103,15 @@ const showImageOptions = () => {
     t('change_pic'),
     '',
     [
-      { text: t('take_photo'), onPress: takePhoto }, // Käännetty
-      { text: t('choose_from_gallery'), onPress: pickFromGallery }, // Käännetty
+      { text: t('take_photo'), onPress: takePhoto },
+      { text: t('choose_from_gallery'), onPress: pickFromGallery },
       profileImage ? { 
         text: language === 'fi' ? 'Poista kuva' : language === 'sv' ? 'Ta bort bild' : 'Remove photo', 
         onPress: removeImage, 
         style: 'destructive' 
       } : null,
       { text: t('cancel'), style: 'cancel' },
-    ].filter(Boolean) as any // Siistimpi tapa suodattaa tyhjät pois
+    ].filter(Boolean) as any
   );
 };
 
@@ -141,7 +141,7 @@ const showImageOptions = () => {
           <Text style={[styles.imageButtonText, { color: colors.text }]}>{t('change_pic')}</Text>
         </TouchableOpacity>
         
-        {user?.email && <Text style={[styles.emailText, { color: colors.secondary }]}>{user.email}</Text>}
+        {user?.name && <Text style={[styles.emailText, { color: colors.secondary }]}>{user.name}</Text>}
       </View>
 
       <View style={styles.row}>
@@ -184,6 +184,30 @@ const showImageOptions = () => {
               </Text>
             </TouchableOpacity>
           ))}
+        </View>
+      </View>
+
+      <View style={styles.row}>
+        <Ionicons name="navigate" size={24} color={colors.text} />
+        <View style={[styles.rowLabel, { borderColor: colors.border }]}>
+          <Text style={[styles.labelText, { color: colors.text }]}>
+            {language === "fi" ? "Sijainti" : language === "sv" ? "Plats" : "Location"}
+          </Text>
+        </View>
+
+        <View style={[styles.switchWrapper, { borderColor: colors.border }]}>
+          <Switch
+            trackColor={{ false: "#ccc", true: colors.primary }}
+            thumbColor={consent === true ? "#fff" : "#f4f3f4"}
+            value={consent === true}
+            onValueChange={async (v) => {
+              if (v) {
+                await requestConsentAndPermissions();
+              } else {
+                await disableLocation();
+              }
+            }}
+          />
         </View>
       </View>
 

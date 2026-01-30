@@ -11,7 +11,7 @@ export type RootStackParamList = {
   [Routes.WasteReport]: undefined;
   [Routes.Complaints]: undefined;
   [Routes.ComplaintsReplay]: undefined;
-  [Routes.ComplaintsList]: undefined;
+  [Routes.Complaints]: undefined;
   [Routes.AddComplaint]: undefined;
   [Routes.Staff]: undefined;
   [Routes.StaffEdit]: undefined;
