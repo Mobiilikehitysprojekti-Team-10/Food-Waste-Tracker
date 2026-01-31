@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react"; // Lisätty useContext
+import React, { useEffect, useState, useContext } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
@@ -12,36 +12,61 @@ import { validateWasteReport } from "../features/wasteReport/application/validat
 import { useWasteReportForm } from "../features/wasteReport/presentation/hooks/useWasteReportForm";
 import { WasteRow } from "../features/wasteReport/presentation/components/WasteRow";
 
-import { useTheme } from "../context/ThemeContext"; 
-import { useLanguage } from "../context/LanguageContext"; 
-import { AuthContext } from "../context/AuthContext"; 
+import { useTheme } from "../context/ThemeContext";
+import { useLanguage } from "../context/LanguageContext";
+import { AuthContext } from "../context/AuthContext";
+
+import { useLocationContext } from "../context/LocationContext";
+import { findNearestWithin } from "../lib/geo";
 
 export default function WasteReportScreen() {
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const { user } = useContext(AuthContext); 
+  const { user } = useContext(AuthContext);
 
   const [locations, setLocations] = useState<LocationRow[]>([]);
   const [loading, setLoading] = useState(false);
 
   const { locationId, setLocationId, rows, toggleType, setKg, reset } = useWasteReportForm();
+  const { location, consent } = useLocationContext();
 
   useEffect(() => {
     let mounted = true;
+
     fetchActiveLocations()
-      .then((data) => mounted && setLocations(data))
-      .catch((e) => Alert.alert(t('error'), `${t('fetch_failed')}: ${e?.message ?? e}`));
+      .then((data) => {
+        if (mounted) setLocations(data);
+      })
+      .catch((e) => Alert.alert(t("error"), `${t("fetch_failed")}: ${e?.message ?? e}`));
+
     return () => {
       mounted = false;
     };
   }, [t]);
+
+  useEffect(() => {
+    if (consent !== true) return;
+    if (!location) return;
+    if (!locations || locations.length === 0) return;
+    if (locationId) return;
+
+    const nearest = findNearestWithin(
+      { latitude: location.latitude, longitude: location.longitude },
+      locations,
+      100
+    );
+
+    if (nearest) {
+      setLocationId(String(nearest.row.id));
+    }
+  }, [consent, location, locations, locationId, setLocationId]);
 
   async function onSubmit() {
     if (loading) return;
 
     const validation = validateWasteReport({ locationId, rows });
     if (!validation.ok) {
-      Alert.alert(t('missing_info'), validation.message);
+      Alert.alert(t("missing_info"), validation.message);
       return;
     }
 
@@ -57,10 +82,10 @@ export default function WasteReportScreen() {
         items: validation.items,
       });
 
-      Alert.alert(t('saved'), `${t('report_saved')} (id: ${reportId})`);
+      Alert.alert(t("saved"), `${t("report_saved")} (id: ${reportId})`);
       reset();
     } catch (e: any) {
-      Alert.alert(t('error'), e?.message ?? String(e));
+      Alert.alert(t("error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -68,14 +93,19 @@ export default function WasteReportScreen() {
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>{t('waste_report')}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{t("waste_report")}</Text>
 
-      <Text style={styles.label}>Select location</Text>
-      <View style={styles.pickerWrap}>
-        <Picker selectedValue={locationId} onValueChange={(v) => setLocationId(String(v))}>
-          <Picker.Item label="Select location" value="" />
+      <Text style={[styles.label, { color: colors.text }]}>{t("select_location") ?? "Select location"}</Text>
+
+      <View style={[styles.pickerWrap, { borderColor: colors.border ?? colors.text }]}>
+        <Picker
+          selectedValue={locationId ?? ""}
+          onValueChange={(v) => setLocationId(String(v))}
+          style={{ color: colors.text }}
+        >
+          <Picker.Item label={t("select_location") ?? "Select location"} value="" />
           {locations.map((l) => (
-            <Picker.Item key={l.id} label={l.name} value={l.id} color={colors.text} />
+            <Picker.Item key={l.id} label={l.name} value={String(l.id)} color={colors.text} />
           ))}
         </Picker>
       </View>
@@ -89,23 +119,21 @@ export default function WasteReportScreen() {
             selected={rows[type].selected}
             kgText={rows[type].kgText}
             onToggle={() => toggleType(type)}
-            onKgChange={(t) => setKg(type, t)}
+            onKgChange={(txt) => setKg(type, txt)}
           />
         ))}
       </View>
 
       <TouchableOpacity
         style={[
-          styles.submit, 
+          styles.submit,
           { backgroundColor: colors.primary, borderColor: colors.primary },
-          loading && styles.submitDisabled
+          loading && styles.submitDisabled,
         ]}
         onPress={onSubmit}
         disabled={loading}
       >
-        <Text style={[styles.submitText, { color: '#fff' }]}>
-          {loading ? t('loading') : t('submit')}
-        </Text>
+        <Text style={styles.submitText}>{loading ? t("loading") : t("submit")}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -119,5 +147,5 @@ const styles = StyleSheet.create({
   list: { marginTop: 8, gap: 10 },
   submit: { marginTop: 24, borderWidth: 1, borderRadius: 8, paddingVertical: 12, alignItems: "center" },
   submitDisabled: { opacity: 0.6 },
-  submitText: { fontSize: 20, fontWeight: "600" },
+  submitText: { fontSize: 20, fontWeight: "600", color: "#fff" },
 });
