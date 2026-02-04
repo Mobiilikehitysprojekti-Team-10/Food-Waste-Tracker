@@ -1,17 +1,30 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../../../../../context/ThemeContext";
 
 export function Card(props: {
   title?: string;
   subtitle?: string;
   children: React.ReactNode;
 }) {
-  return (
-    <View style={styles.card}>
+  const { colors } = useTheme();
+return (
+    <View style={[
+      styles.card, 
+      { backgroundColor: colors.card, borderColor: colors.border }
+    ]}>
       {(props.title || props.subtitle) && (
         <View style={styles.header}>
-          {!!props.title && <Text style={styles.title}>{props.title}</Text>}
-          {!!props.subtitle && <Text style={styles.subtitle}>{props.subtitle}</Text>}
+          {!!props.title && (
+            <Text style={[styles.title, { color: colors.text }]}>
+              {props.title}
+            </Text>
+          )}
+          {!!props.subtitle && (
+            <Text style={[styles.subtitle, { color: colors.secondary || "#666" }]}>
+              {props.subtitle}
+            </Text>
+          )}
         </View>
       )}
       <View style={styles.body}>{props.children}</View>

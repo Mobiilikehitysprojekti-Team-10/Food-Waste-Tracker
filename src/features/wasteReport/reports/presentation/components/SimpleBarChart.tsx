@@ -16,7 +16,7 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function DashedLine({ width }: { width: number }) {
+function DashedLine({ width, color }: { width: number, color?: string }) {
   const dash = 6;
   const gap = 4;
   const count = Math.max(1, Math.floor(width / (dash + gap)));
@@ -24,7 +24,7 @@ function DashedLine({ width }: { width: number }) {
   return (
     <View style={styles.dashRow}>
       {Array.from({ length: count }).map((_, i) => (
-        <View key={i} style={styles.dashSeg} />
+        <View key={i} style={[styles.dashSeg, { backgroundColor: color || "#d0d0d0" }]} />
       ))}
     </View>
   );
@@ -34,7 +34,17 @@ export function SimpleBarChart(props: {
   data: Array<{ label: string; value: number }>;
   height?: number;
   barWidth?: number;
+  isDark?: boolean;
 }) {
+  const isDark = props.isDark;
+
+  // Määritellään värit tässä, niin niitä on helppo käyttää alempana
+  const textColor = isDark ? "#eee" : "#444";
+  const borderColor = isDark ? "#444" : "#ddd";
+  const dashColor = isDark ? "#555" : "#d0d0d0";
+  const zeroLineColor = isDark ? "#888" : "#a9a9a9";
+  const labelBg = isDark ? "rgba(30,30,30,0.9)" : "rgba(255,255,255,0.85)";
+
   const height = props.height ?? 200;
 
   const paddingTop = 10;
@@ -79,6 +89,7 @@ export function SimpleBarChart(props: {
         style={[
           styles.plot,
           { height, paddingTop, paddingBottom, paddingLeft, paddingRight },
+          { borderColor: borderColor },
         ]}
         onLayout={(e) => {
           const w = e.nativeEvent.layout.width;
@@ -126,7 +137,7 @@ export function SimpleBarChart(props: {
                         { left: paddingLeft, right: paddingRight },
                       ]}
                     >
-                      <DashedLine width={plotInnerWidth} />
+                      <DashedLine width={plotInnerWidth} color={dashColor} />
                     </View>
                   )}
 
@@ -134,7 +145,7 @@ export function SimpleBarChart(props: {
                   <Text
                     style={[
                       styles.tickLabelInside,
-                      { top: labelTopAbs - y },
+                      { top: labelTopAbs - y, color: textColor, backgroundColor: labelBg },
                     ]}
                   >
                     {v}
@@ -164,7 +175,7 @@ export function SimpleBarChart(props: {
 
                   {}
                   <View style={[styles.xLabelArea, { height: xLabelRowHeight }]}>
-                    <Text numberOfLines={1} style={styles.xLabel}>
+                    <Text numberOfLines={1} style={[styles.xLabel, { color: textColor }]}>
                       {d.label}
                     </Text>
                   </View>
@@ -175,7 +186,9 @@ export function SimpleBarChart(props: {
         </ScrollView>
       </View>
 
-      <Text style={styles.stepHint}>Scale in: {step} kg increments</Text>
+      <Text style={[styles.stepHint, { color: isDark ? "#aaa" : "#666" }]}>
+        Scale in: {step} kg increments
+      </Text>
     </View>
   );
 }

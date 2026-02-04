@@ -1,14 +1,24 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../../../../../context/ThemeContext";
 
 export function ScreenLayout(props: {
   title: string;
   children: React.ReactNode;
 }) {
+  const { colors } = useTheme();
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{props.title}</Text>
-      <View style={styles.body}>{props.children}</View>
+    <ScrollView 
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>
+        {props.title}
+      </Text>
+      <View style={styles.body}>
+        {props.children}
+      </View>
     </ScrollView>
   );
 }

@@ -76,7 +76,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function ReportsScreen() {
   const navigation = useNavigation<Nav>();
   const { user } = useContext(AuthContext);
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLanguage();
 
   const ownerUid =
@@ -199,6 +199,7 @@ export default function ReportsScreen() {
             subtitle={t('tap_to_enlarge')}
             data={chartData}
             onPressChart={() => setChartOpen(true)}
+            isDark={isDark}
           />
 
           <TableCard
@@ -222,6 +223,8 @@ export default function ReportsScreen() {
         onClose={() => setChartOpen(false)}
         title={`${t('reports')} – ${selectionLabel || "Selection"} (${weekRange.label})`}
         chartData={chartData}
+        isDark={isDark}
+        colors={colors}
       />
     </ScreenLayout>
   );
