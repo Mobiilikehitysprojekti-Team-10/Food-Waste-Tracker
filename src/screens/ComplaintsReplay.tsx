@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import { supabase } from "../lib/supabase";
 import { shortText } from "../features/complaints/helpers";
 import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext"; 
+import { AuthContext } from "../context/AuthContext";
 
 type ComplaintRow = {
   id: string;
@@ -30,6 +31,7 @@ type Props = {
 export default function ComplaintsReplay({ navigation, route }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
+  const { user } = useContext(AuthContext);
 
   const complaint = route?.params?.complaint;
   const locationName = route?.params?.locationName ?? "Unknown location";
@@ -79,6 +81,7 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
       .update({
         status: next,
         resolved_at: next === "closed" ? new Date().toISOString() : null,
+        resolved_by_user_id: user?.id ?? null,
       })
       .eq("id", complaint.id);
 
@@ -93,7 +96,7 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
 
     const cRes = await supabase
       .from("complaint_comments")
-      .insert({ complaint_id: complaint.id, user_id: null, comment_text: text })
+      .insert({ complaint_id: complaint.id, user_id: user?.id ?? null, comment_text: text })
       .select("id,complaint_id,user_id,comment_text,created_at")
       .single();
 

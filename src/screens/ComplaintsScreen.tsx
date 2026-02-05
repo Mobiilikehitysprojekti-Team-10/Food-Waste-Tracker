@@ -73,6 +73,7 @@ export default function ComplaintsScreen({ navigation }: Props) {
   }, [isManager, query, complaints, locationsMap]);
 
   function deleteComplaint(c: ComplaintRow) {
+    if (!isManager) return;
     Alert.alert(t('delete'), "Are you sure?", [
       { text: t('cancel'), style: "cancel" },
       {
@@ -81,7 +82,7 @@ export default function ComplaintsScreen({ navigation }: Props) {
         onPress: async () => {
           const res = await supabase.from("complaints").update({
             deleted_at: new Date().toISOString(),
-            deleted_by_user_id: (user as any)?.id ?? null,
+            deleted_by_user_id: user?.id ?? null,
           }).eq("id", c.id);
           if (!res.error) setComplaints((prev) => prev.filter((x) => x.id !== c.id));
         },

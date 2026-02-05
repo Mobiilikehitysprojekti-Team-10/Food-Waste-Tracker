@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
 import { supabase } from "../lib/supabase";
 import { useTheme } from "../context/ThemeContext"; 
-import { useLanguage } from "../context/LanguageContext"; 
+import { useLanguage } from "../context/LanguageContext";
+import { AuthContext } from "../context/AuthContext";
 
 type Props = { navigation: { goBack: () => void } };
 
@@ -15,6 +16,7 @@ type LocationRow = {
 export default function AddComplaintScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
+  const { user } = useContext(AuthContext);
 
   const [locations, setLocations] = useState<LocationRow[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export default function AddComplaintScreen({ navigation }: Props) {
         .from("complaints")
         .insert({
           location_id: locationId,
-          created_by_user_id: null,
+          created_by_user_id: user?.id ?? null,
           description: titleTrim,
           status: "open",
         })
@@ -87,7 +89,7 @@ export default function AddComplaintScreen({ navigation }: Props) {
       if (complaintId && textTrim.length > 0) {
         await supabase.from("complaint_comments").insert({
           complaint_id: complaintId,
-          user_id: null,
+          user_id: user?.id ?? null,
           comment_text: textTrim,
         });
       }
