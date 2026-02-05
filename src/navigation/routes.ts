@@ -2,6 +2,8 @@ export const Routes = {
   ManagerHome: "ManagerHome",
   EmployeeHome: "EmployeeHome",
 
+  Login: "Login",
+
   Reports: "Reports",
   ReportsFavorite: "ReportsFavorite",
   Compare: "Compare",
