@@ -3,6 +3,10 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-nati
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { useTheme } from "../context/ThemeContext";
+import { useLanguage } from "../context/LanguageContext";
+import { StyleSheet } from "react-native";
+
 import { useMenuLocations } from "../features/menu/presentation/useMenuLocations";
 import { useWeeklyMenu } from "../features/menu/presentation/useWeeklyMenu";
 import { WEEKDAYS, getDefaultWeekdayKey } from "../features/menu/utils/dateUtils";
@@ -16,6 +20,8 @@ const STORAGE_KEY = "menu.selectedLocationId";
 type SelectionSource = "gps" | "saved" | "default" | null;
 
 export default function MenuScreen() {
+  const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const { locations, loading: locLoading, error: locError, refresh: refreshLocations } = useMenuLocations();
   const { location, consent } = useLocationContext();
 
@@ -130,40 +136,66 @@ export default function MenuScreen() {
     );
   }
 
-  return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 12 }}>Menu</Text>
+return (
+    <View style={{ flex: 1, padding: 16, backgroundColor: colors.background }}>
+      <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 12, color: colors.text }}>
+        {t("menu") ?? "Menu"}
+      </Text>
 
-      <Text style={{ marginBottom: 6 }}>Location</Text>
+      <Text style={{ marginBottom: 6, color: colors.text, fontWeight: "500" }}>
+        {t("location") ?? "Location"}
+      </Text>
 
-      {/* small indicator so it never “looks like GPS” when it isn't */}
-      <Text style={{ marginBottom: 8, fontSize: 12, color: "#666" }}>
+      <Text style={{ marginBottom: 8, fontSize: 12, color: isDark ? "#aaa" : "#666" }}>
         {selectionSource === "gps"
-          ? "Selected by GPS (within 100m)"
-          : selectionSource === "saved"
-          ? "Selected (last used / manual)"
-          : selectionSource === "default"
-          ? "Selected (default)"
+          ? t("gps_selected")
+         : selectionSource === "saved"
+          ? t("manual_selected")
           : ""}
       </Text>
 
-      <View style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 12 }}>
-        <Picker
-          selectedValue={locationId ?? ""}
-          onValueChange={(v) => {
-            const id = String(v);
-            if (!id) return;
-            onSelectLocation(id);
-          }}
-        >
-          <Picker.Item label="Select location" value="" />
-          {locations.map((l: any) => (
-            <Picker.Item key={String(l.id)} label={l.name} value={String(l.id)} />
-          ))}
-        </Picker>
-      </View>
+<View style={{ 
+  borderWidth: 1, 
+  borderColor: colors.border, 
+  borderRadius: 8, 
+  marginBottom: 12,
+  backgroundColor: colors.card, 
+  overflow: 'hidden'
+}}>
+  <Picker
+    selectedValue={locationId ?? ""}
+    onValueChange={(v) => {
+      const id = String(v);
+      if (!id) return;
+      onSelectLocation(id);
+    }}
 
-      <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
+    style={{ 
+      color: colors.text, 
+      backgroundColor: colors.card, 
+      height: 55 
+    }}
+    dropdownIconColor={colors.text}
+    mode="dropdown"
+  >
+    <Picker.Item 
+      label={t("select_location") ?? "Select location"} 
+      value="" 
+      color={isDark ? "#FFFFFF" : "#000000"} 
+    />
+    {locations.map((l: any) => (
+      <Picker.Item 
+        key={String(l.id)} 
+        label={l.name} 
+        value={String(l.id)} 
+        color={isDark ? "#FFFFFF" : "#000000"} 
+      />
+    ))}
+  </Picker>
+</View>
+
+      {/* PÄIVÄVALITSIN */}
+      <View style={{ flexDirection: "row", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         {WEEKDAYS.map((wd) => {
           const active = wd.key === selectedDay;
           return (
@@ -175,47 +207,56 @@ export default function MenuScreen() {
                 paddingHorizontal: 10,
                 borderRadius: 8,
                 borderWidth: 1,
-                borderColor: active ? "#222" : "#ccc",
+                backgroundColor: active ? colors.primary : colors.card,
+                borderColor: active ? colors.primary : colors.border,
               }}
             >
-              <Text style={{ fontWeight: active ? "600" : "400" }}>{wd.label}</Text>
+              <Text style={{ 
+                fontWeight: active ? "600" : "400",
+                color: active ? "#ffffff" : colors.text 
+              }}>
+                {wd.label}
+              </Text>
             </Pressable>
           );
         })}
       </View>
 
       {menuLoading && (
-        <View style={{ paddingTop: 24 }}>
-          <ActivityIndicator />
-          <Text style={{ marginTop: 8 }}>Searching for the menu...</Text>
+        <View style={{ paddingTop: 24, alignItems: "center" }}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={{ marginTop: 8, color: colors.text }}>Searching for the menu...</Text>
         </View>
       )}
 
       {!menuLoading && menuError && (
         <View style={{ paddingTop: 24 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600" }}>Error</Text>
-          <Text style={{ marginTop: 6 }}>{menuError}</Text>
+          <Text style={{ fontSize: 16, fontWeight: "600", color: colors.text }}>Error</Text>
+          <Text style={{ marginTop: 6, color: colors.text }}>{menuError}</Text>
         </View>
       )}
 
       {!menuLoading && !menuError && day && (
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           {day.sections.map((sec) => (
             <View key={sec.title} style={{ marginBottom: 16 }}>
-              <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 6 }}>{sec.title}</Text>
+              <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 6, color: colors.primary }}>
+                {sec.title}
+              </Text>
               {sec.items.map((it, idx) => (
-                <Text key={`${sec.title}-${idx}`} style={{ marginBottom: 4 }}>
+                <Text key={`${sec.title}-${idx}`} style={{ marginBottom: 4, color: colors.text }}>
                   • {it}
                 </Text>
               ))}
             </View>
           ))}
 
-          <Text style={{ marginTop: 8, fontSize: 12, color: "#666" }}>
+          {/* TÄRKEÄÄ: Lisätty color: colors.text */}
+          <Text style={{ marginTop: 8, marginBottom: 20, fontSize: 12, color: colors.text, opacity: 0.6 }}>
             Updated: {weeklyMenu ? new Date(weeklyMenu.fetchedAt).toLocaleString() : ""}
           </Text>
         </ScrollView>
       )}
     </View>
   );
-}
+  }

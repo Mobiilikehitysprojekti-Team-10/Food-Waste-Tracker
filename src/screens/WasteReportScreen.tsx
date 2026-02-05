@@ -20,7 +20,7 @@ import { useLocationContext } from "../context/LocationContext";
 import { findNearestWithin } from "../lib/geo";
 
 export default function WasteReportScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const { user } = useContext(AuthContext);
 
@@ -97,18 +97,39 @@ export default function WasteReportScreen() {
 
       <Text style={[styles.label, { color: colors.text }]}>{t("select_location") ?? "Select location"}</Text>
 
-      <View style={[styles.pickerWrap, { borderColor: colors.border ?? colors.text }]}>
+      // ...
+
+      <View style={[
+        styles.pickerWrap, 
+        { 
+          borderColor: colors.border ?? colors.text,
+          backgroundColor: colors.card 
+        }
+      ]}>
         <Picker
           selectedValue={locationId ?? ""}
           onValueChange={(v) => setLocationId(String(v))}
-          style={{ color: colors.text }}
+          style={{ color: colors.text, backgroundColor: colors.card }}
+          dropdownIconColor={colors.text} 
+          mode="dropdown" 
         >
-          <Picker.Item label={t("select_location") ?? "Select location"} value="" />
+          <Picker.Item 
+            label={t("select_location") ?? "Select location"} 
+            value="" 
+            color={isDark ? "#FFFFFF" : "#000000"}
+          />
           {locations.map((l) => (
-            <Picker.Item key={l.id} label={l.name} value={String(l.id)} color={colors.text} />
+            <Picker.Item 
+              key={l.id} 
+              label={l.name} 
+              value={String(l.id)} 
+              color={isDark ? "#FFFFFF" : "#000000"}
+            />
           ))}
         </Picker>
       </View>
+
+// ...
 
       <View style={styles.list}>
         {WASTE_TYPES.map(({ type, label }) => (

@@ -15,6 +15,7 @@ const translations = {
     take_photo: 'Ota uusi kuva',
     choose_from_gallery: 'Valitse galleriasta',
     confirm_remove_photo: 'Haluatko varmasti poistaa profiilikuvan?',
+    compare_data: 'Vertaa tietoja',
     // Vertaa
     compare: 'Vertaa',
     filters: 'Suodattimet',
@@ -80,6 +81,11 @@ const translations = {
     missing_info: 'Puuttuva tieto',
     report_saved: 'Raportti tallennettu',
     select_location_dots: 'Valitse toimipiste...',
+    //GPS
+    location: "Toimipiste",
+    updated: "Päivitetty",
+    gps_selected: "Valittu GPS:llä (100m säteellä)",
+    manual_selected: "Valittu (viimeisin käytetty / manuaalinen)",
   },
   en: {
     // Settings
@@ -93,6 +99,7 @@ const translations = {
     take_photo: 'Take a new photo',
     choose_from_gallery: 'Choose from gallery',
     confirm_remove_photo: 'Are you sure you want to remove the profile picture?',
+    compare_data: 'Compare data',
     // Compare
     compare: 'Compare',
     filters: 'Filters',
@@ -158,6 +165,11 @@ const translations = {
     missing_info: 'Missing information',
     report_saved: 'Report saved',
     select_location_dots: 'Select location...',
+    //GPS
+    location: "Location",
+    updated: "Updated",
+    gps_selected: "Selected by GPS (within 100m)",
+    manual_selected: "Selected (last used / manual)",
   },
   sv: {
     // Inställningar
@@ -171,6 +183,7 @@ const translations = {
     take_photo: 'Ta ett nytt foto',
     choose_from_gallery: 'Välj från galleriet',
     confirm_remove_photo: 'Är du säker på att du vill ta bort profilbilden?',
+    compare_data: 'Jämför data',
     // Jämför
     compare: 'Jämför',
     filters: 'Filter',
@@ -236,6 +249,11 @@ const translations = {
     missing_info: 'Information saknas',
     report_saved: 'Rapporten sparad',
     select_location_dots: 'Välj enhet...',
+    //GPS
+    location: "Driftställe",
+    updated: "Uppdaterad",
+    gps_selected: "Vald via GPS (inom 100m)",
+    manual_selected: "Vald (senast använda / manuell)",
   },
 };
 

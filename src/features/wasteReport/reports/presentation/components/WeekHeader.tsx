@@ -1,11 +1,23 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../../../../../context/ThemeContext";
 
 export function WeekHeader(props: { label: string; subtitle?: string }) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{props.label}</Text>
-      {!!props.subtitle && <Text style={styles.sub}>{props.subtitle}</Text>}
+      {/* Pääteksti teeman värisenä */}
+      <Text style={[styles.label, { color: colors.text }]}>
+        {props.label}
+      </Text>
+      
+      {/* Alateksti käyttäen secondary-väriä tai vaalennettua tekstiä */}
+      {!!props.subtitle && (
+        <Text style={[styles.sub, { color: colors.secondary || "#888" }]}>
+          {props.subtitle}
+        </Text>
+      )}
     </View>
   );
 }
@@ -22,7 +34,7 @@ const styles = StyleSheet.create({
   sub: {
     marginTop: 4,
     fontSize: 13,
-    color: "#666",
     fontWeight: "600",
+    // Poistettu kiinteä color: "#666"
   },
 });

@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { NavigationContainer } from "@react-navigation/native";
+import { useTheme } from '../context/ThemeContext';
+import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "./types";
 import { Routes } from "./routes";
@@ -26,11 +27,23 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const { user } = useContext(AuthContext);
-
+  const { isDark, colors } = useTheme();
 
   if (!user) {
     return <LoginScreen />;
   }
+
+  const navTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+      primary: colors.primary,
+    },
+  };
 
   return (
     <NavigationContainer>
@@ -40,8 +53,18 @@ export default function AppNavigator() {
 }
 
 function ManagerStack() {
+  const { colors } = useTheme();
+
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.card, 
+        },
+        headerTintColor: colors.text,   
+        headerTitleAlign: "center",   
+      }}
+    >
       <Stack.Screen name={Routes.ManagerHome} component={ManagerHome} options={{ title: "Esihenkilö", headerTitleAlign: "center", }} />
       <Stack.Screen name={Routes.Reports} component={ReportsScreen} />
       <Stack.Screen name={Routes.ReportsFavorite} component={ReportsFavoriteScreen} options={{ title: "Reports - Create Favorite", headerTitleAlign: "center", }} />
@@ -61,8 +84,18 @@ function ManagerStack() {
 }
 
 function EmployeeStack() {
+  const { colors } = useTheme();
+
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.card,
+        },
+        headerTintColor: colors.text,
+        headerTitleAlign: "center",
+      }}
+    >
       <Stack.Screen name={Routes.EmployeeHome} component={EmployeeHome} options={{ title: "Työntekijä", headerTitleAlign: "center", }} />
       <Stack.Screen name={Routes.WasteReport} component={WasteReportScreen} options={{ title: "Waste report", headerTitleAlign: "center", }} />
       <Stack.Screen name={Routes.Complaints} component={ComplaintsScreen} />
