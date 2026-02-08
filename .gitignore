@@ -47,3 +47,6 @@ yarn-error.*
 *.iml
 *.iws
 *.ipr
+# Firebase
+google-services.json
+GoogleService-Info.plist
