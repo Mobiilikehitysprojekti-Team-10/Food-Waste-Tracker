@@ -1,5 +1,6 @@
 import React, { createContext, ReactNode, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { registerAndSavePushToken } from "../features/notifications/push";
 
 type User = {
   id: string;
@@ -46,6 +47,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       name: data.display_name ?? "User",
       role: data.role,
     });
+
+    const nextUser = {
+      id: data.id,
+      name: data.display_name ?? "User",
+      role: data.role,
+    };
+
+    setUser(nextUser);
+
+    //push token
+    try {
+      await registerAndSavePushToken(nextUser.id);
+    } catch (e) {
+      console.log("[push] register failed", e);
+    }
+
   }
 
   useEffect(() => {
