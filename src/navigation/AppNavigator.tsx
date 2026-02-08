@@ -21,6 +21,7 @@ import ComplaintsReplay from '../screens/ComplaintsReplay';
 import StaffEdit from '../screens/StaffEdit';
 import CompareScreen from "../screens/CompareScreen";
 import { ActivityIndicator } from "react-native";
+import NotificationsScreen from "../screens/NotificationScreen";
 
 
 
@@ -31,10 +32,10 @@ export default function AppNavigator() {
   const { isDark, colors } = useTheme();
 
   if (loading) {
-  return (
-    <ActivityIndicator size="large"style={{ flex: 1, justifyContent: "center" }}/>
-  );
-}
+    return (
+      <ActivityIndicator size="large"style={{ flex: 1, justifyContent: "center" }}/>
+    );
+  }
 
   const navTheme = {
     ...(isDark ? DarkTheme : DefaultTheme),
@@ -67,15 +68,7 @@ function ManagerStack() {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.card, 
-        },
-        headerTintColor: colors.text,   
-        headerTitleAlign: "center",   
-      }}
-    >
+    <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: colors.card,}, headerTintColor: colors.text, headerTitleAlign: "center",}}>
       <Stack.Screen name={Routes.ManagerHome} component={ManagerHome} options={{ title: "Esihenkilö", headerTitleAlign: "center", }} />
       <Stack.Screen name={Routes.Reports} component={ReportsScreen} />
       <Stack.Screen name={Routes.ReportsFavorite} component={ReportsFavoriteScreen} options={{ title: "Reports - Create Favorite", headerTitleAlign: "center", }} />
@@ -83,6 +76,7 @@ function ManagerStack() {
       <Stack.Screen name={Routes.Complaints} component={ComplaintsScreen} options={{ title: "Complaints", headerTitleAlign: "center" }} />
       <Stack.Screen name={Routes.ComplaintsReplay} component={ComplaintsReplay} options={{ title: "Complaints - Replay", headerTitleAlign: "center" }} />
       <Stack.Screen name={Routes.AddComplaint} component={AddComplaintScreen} options={{ title: "Complaints - Add New Complaint", headerTitleAlign: "center" }} />
+      <Stack.Screen name={Routes.Notifications as any} component={NotificationsScreen} />
 
       <Stack.Screen name={Routes.Staff} component={StaffScreen} options={{ title: "Staff", headerTitleAlign: "center" }} />
       <Stack.Screen name={Routes.StaffEdit} component={StaffEdit} options={{ title: "Staff - Edit", headerTitleAlign: "center" }}/>
@@ -112,6 +106,7 @@ function EmployeeStack() {
       <Stack.Screen name={Routes.Complaints} component={ComplaintsScreen} />
       <Stack.Screen name={Routes.ComplaintsReplay} component={ComplaintsReplay} options={{ title: "Complaints - Review", headerTitleAlign: "center" }}/>
       <Stack.Screen name={Routes.AddComplaint} component={AddComplaintScreen} options={{ title: "New Complaint", headerTitleAlign: "center" }} />
+      <Stack.Screen name={Routes.Notifications as any} component={NotificationsScreen} />
       <Stack.Screen name={Routes.Menu} component={MenuScreen} />
       <Stack.Screen name={Routes.Settings} component={SettingsScreen} />
     </Stack.Navigator>

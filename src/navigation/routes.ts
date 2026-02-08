@@ -3,6 +3,7 @@ export const Routes = {
   EmployeeHome: "EmployeeHome",
 
   Login: "Login",
+  Notifications: "Notifications",
 
   Reports: "Reports",
   ReportsFavorite: "ReportsFavorite",
