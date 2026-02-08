@@ -17,10 +17,13 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We use your location to suggest the nearest office in Waste Report and Menu.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Your location can be updated in the background so that the nearest office can be found quickly. You can turn this off in the settings.",
-        "UIBackgroundModes": ["location"]
+        "UIBackgroundModes": [
+          "location"
+        ]
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,14 +34,21 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION"
-      ]
+      ],
+      "package": "com.murdamike.FoodWasteTracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b699a64b-ba52-48f3-a391-625cbcf5e49a"
+      }
+    }
   }
 }
