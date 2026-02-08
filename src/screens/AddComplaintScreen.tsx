@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
 import { supabase } from "../lib/supabase";
-import { useTheme } from "../context/ThemeContext"; 
+import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
 import { AuthContext } from "../context/AuthContext";
+import { notifyManagers } from "../features/notifications/push";
 
 type Props = { navigation: { goBack: () => void } };
 
@@ -86,6 +87,16 @@ export default function AddComplaintScreen({ navigation }: Props) {
       }
 
       const complaintId = insertRes.data?.id as string | undefined;
+
+      //noti managerille
+      if (complaintId) {
+        await notifyManagers("complaint_new", {
+          title: "Uusi complaint",
+          body: `${titleTrim}`,
+          data: { complaintId, locationId },
+        });
+      }
+
       if (complaintId && textTrim.length > 0) {
         await supabase.from("complaint_comments").insert({
           complaint_id: complaintId,
@@ -112,11 +123,7 @@ export default function AddComplaintScreen({ navigation }: Props) {
         </View>
       ) : (
         <>
-          <Pressable 
-            style={[styles.dropdownButton, { backgroundColor: colors.card, borderColor: colors.border }]} 
-            onPress={() => setLocationMenuOpen(true)} 
-            disabled={locations.length === 0}
-          >
+          <Pressable style={[styles.dropdownButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => setLocationMenuOpen(true)} disabled={locations.length === 0}>
             <Text style={[styles.dropdownButtonText, { color: colors.text }]}>{selectedLocationName}</Text>
             <Text style={[styles.dropdownChevron, { color: colors.text }]}>▾</Text>
           </Pressable>
@@ -154,27 +161,27 @@ export default function AddComplaintScreen({ navigation }: Props) {
       )}
 
       <Text style={[styles.label, { color: colors.text }]}>{t('header')}</Text>
-      <TextInput 
-        placeholder="..." 
+      <TextInput
+        placeholder="..."
         placeholderTextColor={colors.secondary}
-        value={title} 
-        onChangeText={setTitle} 
-        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]} 
+        value={title}
+        onChangeText={setTitle}
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
       />
 
       <Text style={[styles.label, { color: colors.text, marginTop: 12 }]}>{t('description')}</Text>
-      <TextInput 
-        placeholder="..." 
+      <TextInput
+        placeholder="..."
         placeholderTextColor={colors.secondary}
-        value={text} 
-        onChangeText={setText} 
-        multiline 
-        style={[styles.textArea, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]} 
+        value={text}
+        onChangeText={setText}
+        multiline
+        style={[styles.textArea, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
       />
 
-      <Pressable 
-        style={[styles.submit, { backgroundColor: colors.primary, borderColor: colors.primary }, !canSubmit && { opacity: 0.5 }]} 
-        disabled={!canSubmit} 
+      <Pressable
+        style={[styles.submit, { backgroundColor: colors.primary, borderColor: colors.primary }, !canSubmit && { opacity: 0.5 }]}
+        disabled={!canSubmit}
         onPress={onSubmit}
       >
         <Text style={[styles.submitText, { color: '#fff' }]}>{saving ? "..." : t('save')}</Text>

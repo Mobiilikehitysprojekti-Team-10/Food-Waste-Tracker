@@ -3,8 +3,9 @@ import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoid
 import { supabase } from "../lib/supabase";
 import { shortText } from "../features/complaints/helpers";
 import { useTheme } from "../context/ThemeContext";
-import { useLanguage } from "../context/LanguageContext"; 
+import { useLanguage } from "../context/LanguageContext";
 import { AuthContext } from "../context/AuthContext";
+import { notifyManagers, notifyUserIfNotSelf } from "../features/notifications/push";
 
 type ComplaintRow = {
   id: string;
@@ -87,6 +88,15 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
 
     setStatusSaving(false);
     if (!res.error) setStatus(next);
+
+    const creatorId = complaint?.created_by_user_id ?? null;
+    if (creatorId) {
+      await notifyUserIfNotSelf(creatorId, user?.id ?? null, "complaint_status_changed", {
+        title: "Complaintin tila muuttui",
+        body: `Tila: ${next}`,
+        data: { complaintId: complaint.id, status: next },
+      });
+    }
   }
 
   async function onSubmit() {
@@ -104,6 +114,28 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
     if (cRes.data) {
       setComments((prev) => [...prev, cRes.data as ComplaintCommentRow]);
       setReply("");
+
+      //uusi viesti complaintissa
+      const creatorId = complaint?.created_by_user_id ?? null;
+      if (isManager && creatorId) {
+        await notifyUserIfNotSelf(creatorId, user?.id ?? null, "complaint_comment", {
+          title: "Uusi viesti complaintissa",
+          body: text,
+          data: { complaintId: complaint.id },
+        });
+      }
+
+      if (!isManager) {
+        await notifyManagers(
+          "complaint_comment",
+          {
+            title: "Uusi viesti complaintissa",
+            body: text,
+            data: { complaintId: complaint.id },
+          },
+          user?.id ?? null
+        );
+      }
     }
   }
 
@@ -135,8 +167,8 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
                 onPress={toggleStatus}
                 disabled={statusSaving || !complaint?.id}
                 style={[
-                  styles.pill, 
-                  isClosed ? styles.pillClosed : styles.pillOpen, 
+                  styles.pill,
+                  isClosed ? styles.pillClosed : styles.pillOpen,
                   statusSaving && { opacity: 0.6 }
                 ]}
               >
@@ -177,18 +209,18 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
 
       {/* Vastausosio */}
       <View style={[styles.composer, { borderTopColor: colors.border }]}>
-        <TextInput 
-          placeholder="Type here..." 
+        <TextInput
+          placeholder="Type here..."
           placeholderTextColor={colors.secondary}
-          value={reply} 
-          onChangeText={setReply} 
-          multiline 
-          style={[styles.textArea, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]} 
+          value={reply}
+          onChangeText={setReply}
+          multiline
+          style={[styles.textArea, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
         />
 
-        <Pressable 
-          style={[styles.submit, { backgroundColor: colors.primary, borderColor: colors.primary }, !canSubmit && { opacity: 0.5 }]} 
-          disabled={!canSubmit} 
+        <Pressable
+          style={[styles.submit, { backgroundColor: colors.primary, borderColor: colors.primary }, !canSubmit && { opacity: 0.5 }]}
+          disabled={!canSubmit}
           onPress={onSubmit}
         >
           <Text style={[styles.submitText, { color: '#fff' }]}>{saving ? "..." : t('save')}</Text>
