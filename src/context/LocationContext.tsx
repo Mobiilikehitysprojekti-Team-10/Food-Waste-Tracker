@@ -326,7 +326,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
                   await syncWithSystemPermissions();
                 }}
               >
-                <Text style={{ padding: 10 }}>Ei nyt</Text>
+                <Text style={{ padding: 10 }}>Not Now</Text>
               </Pressable>
 
               <Pressable onPress={requestConsentAndPermissions}>

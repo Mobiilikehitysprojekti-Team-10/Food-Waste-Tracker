@@ -97,8 +97,6 @@ export default function WasteReportScreen() {
 
       <Text style={[styles.label, { color: colors.text }]}>{t("select_location") ?? "Select location"}</Text>
 
-      // ...
-
       <View style={[
         styles.pickerWrap, 
         { 
@@ -128,8 +126,6 @@ export default function WasteReportScreen() {
           ))}
         </Picker>
       </View>
-
-// ...
 
       <View style={styles.list}>
         {WASTE_TYPES.map(({ type, label }) => (

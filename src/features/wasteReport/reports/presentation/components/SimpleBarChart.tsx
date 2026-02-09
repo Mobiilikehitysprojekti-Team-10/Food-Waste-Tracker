@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useTheme } from "../../../../../context/ThemeContext";
 
 function getStep(maxVal: number): number {
   if (maxVal <= 100) return 10;
@@ -34,16 +35,17 @@ export function SimpleBarChart(props: {
   data: Array<{ label: string; value: number }>;
   height?: number;
   barWidth?: number;
-  isDark?: boolean;
 }) {
-  const isDark = props.isDark;
+  const { colors, isDark } = useTheme();
 
   // Määritellään värit tässä, niin niitä on helppo käyttää alempana
-  const textColor = isDark ? "#eee" : "#444";
-  const borderColor = isDark ? "#444" : "#ddd";
-  const dashColor = isDark ? "#555" : "#d0d0d0";
-  const zeroLineColor = isDark ? "#888" : "#a9a9a9";
+  const textColor = colors.text;
+  const borderColor = colors.border;
+  const dashColor = isDark ? colors.border : colors.border; // Use border color for dashes
+  const zeroLineColor = colors.textSecondary; // Use a secondary text color for zero line
   const labelBg = isDark ? "rgba(30,30,30,0.9)" : "rgba(255,255,255,0.85)";
+  const barColor = colors.primary; // Use primary color for the bar
+  const barBorderColor = isDark ? colors.primaryDark : colors.primaryLight; // A subtle border for the bar
 
   const height = props.height ?? 200;
 
@@ -170,7 +172,7 @@ export function SimpleBarChart(props: {
                 >
                   {}
                   <View style={[styles.barArea, { height: barAreaHeight }]}>
-                    <View style={[styles.bar, { height: barHeight }]} />
+                    <View style={[styles.bar, { height: barHeight, backgroundColor: barColor, borderColor: barBorderColor }]} />
                   </View>
 
                   {}
@@ -186,7 +188,7 @@ export function SimpleBarChart(props: {
         </ScrollView>
       </View>
 
-      <Text style={[styles.stepHint, { color: isDark ? "#aaa" : "#666" }]}>
+      <Text style={[styles.stepHint, { color: colors.textSecondary }]}>
         Scale in: {step} kg increments
       </Text>
     </View>
@@ -198,7 +200,6 @@ const styles = StyleSheet.create({
 
   plot: {
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 10,
     overflow: "hidden",
   },
@@ -214,21 +215,21 @@ const styles = StyleSheet.create({
     width: 6,
     height: 1,
     marginRight: 4,
-    backgroundColor: "#d0d0d0",
+    // backgroundColor: "#d0d0d0", // This will be handled by the DashedLine component's props
   },
 
   zeroLine: {
     position: "absolute",
     height: 1.5,
-    backgroundColor: "#a9a9a9",
+    // backgroundColor: "#a9a9a9", // This will be handled by the component's props
   },
 
   tickLabelInside: {
     position: "absolute",
     left: 6,
     fontSize: 12,
-    color: "#444",
-    backgroundColor: "rgba(255,255,255,0.85)",
+    // color: "#444", // Handled by component's props
+    // backgroundColor: "rgba(255,255,255,0.85)", // Handled by component's props
     paddingHorizontal: 4,
     borderRadius: 4,
   },
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
     width: "70%",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#2d2d2d",
+    // borderColor: "#2d2d2d", // Handled by component's props
   },
 
   xLabelArea: {
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 12,
     textAlign: "center",
-    color: "#666",
+    // color: "#666", // Handled by component's props
   },
 });
 

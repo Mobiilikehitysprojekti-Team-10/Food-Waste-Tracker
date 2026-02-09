@@ -22,6 +22,7 @@ import StaffEdit from '../screens/StaffEdit';
 import CompareScreen from "../screens/CompareScreen";
 import { ActivityIndicator } from "react-native";
 import NotificationsScreen from "../screens/NotificationScreen";
+import { QuickNotesScreen } from "../screens/QuickNotesScreen";
 
 
 
@@ -84,6 +85,7 @@ function ManagerStack() {
       <Stack.Screen name={Routes.Menu} component={MenuScreen} />
       <Stack.Screen name={Routes.Settings} component={SettingsScreen} />
       <Stack.Screen name={Routes.Compare} component={CompareScreen} options={{ title: "Compare data", headerTitleAlign: "center" }} />
+      <Stack.Screen name={Routes.QuickNotes} component={QuickNotesScreen} options={{ title: "Quick Notes", headerTitleAlign: "center" }} />
     </Stack.Navigator>
   );
 }
@@ -109,6 +111,7 @@ function EmployeeStack() {
       <Stack.Screen name={Routes.Notifications as any} component={NotificationsScreen} />
       <Stack.Screen name={Routes.Menu} component={MenuScreen} />
       <Stack.Screen name={Routes.Settings} component={SettingsScreen} />
+      <Stack.Screen name={Routes.QuickNotes} component={QuickNotesScreen} options={{ title: "Quick Notes", headerTitleAlign: "center" }} />
     </Stack.Navigator>
   );
 }

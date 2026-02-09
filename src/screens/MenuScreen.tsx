@@ -154,12 +154,12 @@ return (
           : ""}
       </Text>
 
-<View style={{ 
-  borderWidth: 1, 
-  borderColor: colors.border, 
-  borderRadius: 8, 
+<View style={{
+  borderWidth: 1,
+  borderColor: colors.border,
+  borderRadius: 8,
   marginBottom: 12,
-  backgroundColor: colors.card, 
+  backgroundColor: colors.card,
   overflow: 'hidden'
 }}>
   <Picker
@@ -170,25 +170,24 @@ return (
       onSelectLocation(id);
     }}
 
-    style={{ 
-      color: colors.text, 
-      backgroundColor: colors.card, 
-      height: 55 
+    style={{
+      color: colors.text,
+      backgroundColor: colors.card
     }}
     dropdownIconColor={colors.text}
     mode="dropdown"
   >
-    <Picker.Item 
-      label={t("select_location") ?? "Select location"} 
-      value="" 
-      color={isDark ? "#FFFFFF" : "#000000"} 
+    <Picker.Item
+      label={String(t("select_location") ?? "Select location")}
+      value=""
+      color={isDark ? "#FFFFFF" : "#000000"}
     />
     {locations.map((l: any) => (
-      <Picker.Item 
-        key={String(l.id)} 
-        label={l.name} 
-        value={String(l.id)} 
-        color={isDark ? "#FFFFFF" : "#000000"} 
+      <Picker.Item
+        key={String(l.id)}
+        label={String(l.name)}
+        value={String(l.id)}
+        color={isDark ? "#FFFFFF" : "#000000"}
       />
     ))}
   </Picker>
@@ -211,9 +210,9 @@ return (
                 borderColor: active ? colors.primary : colors.border,
               }}
             >
-              <Text style={{ 
+              <Text style={{
                 fontWeight: active ? "600" : "400",
-                color: active ? "#ffffff" : colors.text 
+                color: active ? "#ffffff" : colors.text
               }}>
                 {wd.label}
               </Text>
@@ -250,8 +249,6 @@ return (
               ))}
             </View>
           ))}
-
-          {/* TÄRKEÄÄ: Lisätty color: colors.text */}
           <Text style={{ marginTop: 8, marginBottom: 20, fontSize: 12, color: colors.text, opacity: 0.6 }}>
             Updated: {weeklyMenu ? new Date(weeklyMenu.fetchedAt).toLocaleString() : ""}
           </Text>

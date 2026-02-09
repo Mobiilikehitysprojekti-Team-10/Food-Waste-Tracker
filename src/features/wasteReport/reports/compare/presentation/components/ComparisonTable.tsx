@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../../../../../../context/ThemeContext";
 
 function pctText(a: number, diff: number) {
   if (!Number.isFinite(a) || a === 0) return "—";
@@ -12,24 +13,25 @@ export function ComparisonTable(props: {
   aLabel: string;
   bLabel: string;
 }) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.table}>
-      <View style={[styles.row, styles.header]}>
-        <Text style={[styles.cell, styles.headerCell]}>Type</Text>
-        <Text style={[styles.cell, styles.headerCell]}>A</Text>
-        <Text style={[styles.cell, styles.headerCell]}>B</Text>
-        <Text style={[styles.cell, styles.headerCell]}>kg</Text>
-        <Text style={[styles.cell, styles.headerCell]}>%</Text>
+    <View style={[styles.table, { borderColor: colors.border }]}>
+      <View style={[styles.row, styles.header, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Text style={[styles.cell, styles.headerCell, { color: colors.text }]}>Type</Text>
+        <Text style={[styles.cell, styles.headerCell, { color: colors.text }]}>A</Text>
+        <Text style={[styles.cell, styles.headerCell, { color: colors.text }]}>B</Text>
+        <Text style={[styles.cell, styles.headerCell, { color: colors.text }]}>kg</Text>
+        <Text style={[styles.cell, styles.headerCell, { color: colors.text }]}>%</Text>
       </View>
 
       {props.rows.map((r, i) => {
         const diffStyle = r.diff > 0 ? styles.pos : r.diff < 0 ? styles.neg : null;
 
         return (
-          <View key={i} style={styles.row}>
-            <Text style={styles.cell}>{r.label}</Text>
-            <Text style={styles.cell}>{r.a.toFixed(1)}</Text>
-            <Text style={styles.cell}>{r.b.toFixed(1)}</Text>
+          <View key={i} style={[styles.row, { borderColor: colors.border }]}>
+            <Text style={[styles.cell, { color: colors.text }]}>{r.label}</Text>
+            <Text style={[styles.cell, { color: colors.text }]}>{r.a.toFixed(1)}</Text>
+            <Text style={[styles.cell, { color: colors.text }]}>{r.b.toFixed(1)}</Text>
             <Text style={[styles.cell, diffStyle]}>{r.diff.toFixed(1)}</Text>
             <Text style={[styles.cell, diffStyle]}>{pctText(r.a, r.diff)}</Text>
           </View>
@@ -42,13 +44,12 @@ export function ComparisonTable(props: {
 const styles = StyleSheet.create({
   table: {
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 10,
     overflow: "hidden",
     marginTop: 12,
   },
-  row: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#eee" },
-  header: { backgroundColor: "#eee" },
+  row: { flexDirection: "row", borderBottomWidth: 1 },
+  header: { },
   cell: { flex: 1, padding: 10 },
   headerCell: { fontWeight: "700" },
   pos: { color: "green", fontWeight: "700" },
