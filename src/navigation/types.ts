@@ -17,4 +17,5 @@ export type RootStackParamList = {
   [Routes.StaffEdit]: undefined;
   [Routes.Menu]: undefined;
   [Routes.Settings]: undefined;
+  [Routes.QuickNotes]: undefined;
 };

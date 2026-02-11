@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../../../../../../context/ThemeContext";
 
 export function GroupedBarChart(props: {
   data: Array<{ label: string; a: number; b: number }>;
@@ -10,6 +11,7 @@ export function GroupedBarChart(props: {
   aLabel?: string;
   bLabel?: string;
 }) {
+  const { colors } = useTheme();
   const height = props.height ?? 220;
   const xLabelHeight = 22;
   const chartHeight = height + xLabelHeight;
@@ -45,17 +47,21 @@ export function GroupedBarChart(props: {
   const groupWidth = barWidth * 2 + innerGap;
   const contentWidth = props.data.length * (groupWidth + groupGap);
 
+  const aSwatchColor = colors.primary;
+  const bSwatchColor = colors.secondary;
+  const barBorderColor = colors.border;
+
   return (
     <View>
       {/* Legend */}
       <View style={styles.legendRow}>
         <View style={styles.legendItem}>
-          <View style={[styles.swatch, styles.aSwatch]} />
-          <Text style={styles.legendText}>{props.aLabel ?? "A"}</Text>
+          <View style={[styles.swatch, { backgroundColor: aSwatchColor, borderColor: barBorderColor }]} />
+          <Text style={[styles.legendText, { color: colors.text }]}>{props.aLabel ?? "A"}</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.swatch, styles.bSwatch]} />
-          <Text style={styles.legendText}>{props.bLabel ?? "B"}</Text>
+          <View style={[styles.swatch, { backgroundColor: bSwatchColor, borderColor: barBorderColor }]} />
+          <Text style={[styles.legendText, { color: colors.text }]}>{props.bLabel ?? "B"}</Text>
         </View>
       </View>
 
@@ -67,7 +73,7 @@ export function GroupedBarChart(props: {
             .reverse()
             .map((t) => (
               <View key={t} style={styles.yTick}>
-                <Text style={styles.yLabel}>{t}</Text>
+                <Text style={[styles.yLabel, { color: colors.textSecondary }]}>{t}</Text>
               </View>
             ))}
         </View>
@@ -79,7 +85,7 @@ export function GroupedBarChart(props: {
             <View style={[styles.gridLayer, { height }]}>
               {ticks.map((t) => {
                 const y = height - (t / topTick) * height;
-                return <View key={t} style={[styles.gridLine, { top: y }]} />;
+                return <View key={t} style={[styles.gridLine, { top: y, borderColor: colors.border }]} />;
               })}
             </View>
 
@@ -95,11 +101,11 @@ export function GroupedBarChart(props: {
                     key={`${r.label}-${idx}`}
                     style={[styles.group, { left, width: groupWidth, bottom: xLabelHeight }]}
                   >
-                    <View style={[styles.bar, styles.aBar, { width: barWidth, height: aH }]} />
+                    <View style={[styles.bar, { width: barWidth, height: aH, backgroundColor: aSwatchColor, borderColor: barBorderColor }]} />
                     <View style={{ width: innerGap }} />
-                    <View style={[styles.bar, styles.bBar, { width: barWidth, height: bH }]} />
+                    <View style={[styles.bar, { width: barWidth, height: bH, backgroundColor: bSwatchColor, borderColor: barBorderColor }]} />
 
-                    <Text style={[styles.xLabel, { bottom: -xLabelHeight + 2 }]} numberOfLines={1}>
+                    <Text style={[styles.xLabel, { bottom: -xLabelHeight + 2, color: colors.text }]} numberOfLines={1}>
                       {r.label}
                     </Text>
                   </View>
@@ -121,9 +127,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 8 },
-  swatch: { width: 14, height: 14, borderRadius: 3, borderWidth: 1, borderColor: "#333" },
-  aSwatch: { backgroundColor: "#999" },
-  bSwatch: { backgroundColor: "#333" },
+  swatch: { width: 14, height: 14, borderRadius: 3, borderWidth: 1 },
+  // aSwatch: { backgroundColor: "#999" }, // Handled by component props
+  // bSwatch: { backgroundColor: "#333" }, // Handled by component props
   legendText: { fontSize: 12, fontWeight: "700" },
 
   chartRow: { flexDirection: "row" },
@@ -134,7 +140,7 @@ const styles = StyleSheet.create({
     paddingRight: 6,
   },
   yTick: { alignItems: "flex-end" },
-  yLabel: { fontSize: 10, color: "#666" },
+  yLabel: { fontSize: 10 }, // Handled by component props
 
   gridLayer: { position: "absolute", left: 0, right: 0 },
   gridLine: {
@@ -143,7 +149,6 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: 1,
     borderStyle: "dashed",
-    borderColor: "#ddd",
   },
 
   barsLayer: { height: 220 }, // overwritten inline
@@ -156,10 +161,9 @@ const styles = StyleSheet.create({
   bar: {
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: "#333",
   },
-  aBar: { backgroundColor: "#999" },
-  bBar: { backgroundColor: "#333" },
+  // aBar: { backgroundColor: "#999" }, // Handled by component props
+  // bBar: { backgroundColor: "#333" }, // Handled by component props
 
   xLabel: {
     position: "absolute",
@@ -167,6 +171,6 @@ const styles = StyleSheet.create({
     width: "100%",
     textAlign: "center",
     fontSize: 11,
-    color: "#444",
+    // color: "#444", // Handled by component props
   },
 });

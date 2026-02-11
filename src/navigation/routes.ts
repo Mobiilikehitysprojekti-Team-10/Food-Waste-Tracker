@@ -17,6 +17,7 @@ export const Routes = {
   StaffEdit: "StaffEdit",
   Menu: "Menu",
   Settings: "Settings",
+  QuickNotes: "QuickNotes",
 } as const;
 
 export type RouteName = typeof Routes[keyof typeof Routes];

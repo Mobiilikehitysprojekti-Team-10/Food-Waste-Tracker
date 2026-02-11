@@ -6,6 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Routes } from '../navigation/routes';
 import { supabase } from '../lib/supabase';
 import { useIsFocused } from '@react-navigation/native';
+import { useQuickNotes } from '../features/quickNotes/application/useQuickNotes';
 
 type Props = {
   navigation: { navigate: (route: string, params?: any) => void };
@@ -15,6 +16,7 @@ export default function EmployeeHome({ navigation }: Props) {
   const { logout, user } = useContext(AuthContext);
   const { colors } = useTheme();
   const { t } = useLanguage();
+  const { notes, loadNotes } = useQuickNotes(); // Destructure loadNotes
 
   const isFocused = useIsFocused();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -32,8 +34,11 @@ export default function EmployeeHome({ navigation }: Props) {
   }
 
   useEffect(() => {
-    if (isFocused) loadUnreadCount();
-  }, [isFocused, user?.id]);
+    if (isFocused) {
+      loadUnreadCount();
+      loadNotes(); // Call loadNotes when the screen is focused
+    }
+  }, [isFocused, user?.id, loadNotes]); // Add loadNotes to dependencies
 
   const NavButton = ({
     title,
@@ -69,14 +74,20 @@ export default function EmployeeHome({ navigation }: Props) {
         <NavButton title={t('settings')} route={Routes.Settings} />
         <NavButton title="Ilmoitukset" route={Routes.Notifications} badge={unreadCount} />
 
-        <View style={[styles.statsBox, { borderColor: colors.border }]}>
-          <Text style={[styles.statsText, { color: colors.text }]}>
-            Quick stats: Reported waste during the week: 900kg
-          </Text>
-          <Text style={[styles.statsText, { color: colors.secondary, marginTop: 10 }]}>
-            Quick notes: Muista pakastimen tyhjennys
-          </Text>
-        </View>
+        <TouchableOpacity
+          style={[styles.statsBox, { borderColor: colors.border }]}
+          onPress={() => navigation.navigate(Routes.QuickNotes)}
+        >
+          {notes.length > 0 ? (
+            <Text style={[styles.statsText, { color: colors.secondary }]}>
+              Quick notes: {notes[0].content}
+            </Text>
+          ) : (
+            <Text style={[styles.statsText, { color: colors.secondary }]}>
+              No quick notes yet. Tap to add one!
+            </Text>
+          )}
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutButton} onPress={logout}>
           <Text style={styles.logoutText}>{t('logout')}</Text>
