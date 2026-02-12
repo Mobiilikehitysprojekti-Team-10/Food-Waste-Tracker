@@ -5,7 +5,7 @@ import { shortText } from "../features/complaints/helpers";
 import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
 import { AuthContext } from "../context/AuthContext";
-import { notifyManagers, notifyUserIfNotSelf } from "../features/notifications/push";
+import { notifyManagersAtLocation, notifyUserIfNotSelfAtLocation } from "../features/notifications/push";
 
 type ComplaintRow = {
   id: string;
@@ -91,11 +91,17 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
 
     const creatorId = complaint?.created_by_user_id ?? null;
     if (creatorId) {
-      await notifyUserIfNotSelf(creatorId, user?.id ?? null, "complaint_status_changed", {
-        title: "Complaintin tila muuttui",
-        body: `Tila: ${next}`,
-        data: { complaintId: complaint.id, status: next },
-      });
+      await notifyUserIfNotSelfAtLocation(
+        creatorId,
+        user?.id ?? null,
+        complaint.location_id,
+        "complaint_status_changed",
+        {
+          title: "Complaintin tila muuttui",
+          body: `Tila: ${next}`,
+          data: { complaintId: complaint.id, status: next, locationId: complaint.location_id },
+        }
+      );
     }
   }
 
@@ -118,20 +124,27 @@ export default function ComplaintsReplay({ navigation, route }: Props) {
       //uusi viesti complaintissa
       const creatorId = complaint?.created_by_user_id ?? null;
       if (isManager && creatorId) {
-        await notifyUserIfNotSelf(creatorId, user?.id ?? null, "complaint_comment", {
-          title: "Uusi viesti complaintissa",
-          body: text,
-          data: { complaintId: complaint.id },
-        });
-      }
-
-      if (!isManager) {
-        await notifyManagers(
+        await notifyUserIfNotSelfAtLocation(
+          creatorId,
+          user?.id ?? null,
+          complaint.location_id,
           "complaint_comment",
           {
             title: "Uusi viesti complaintissa",
             body: text,
-            data: { complaintId: complaint.id },
+            data: { complaintId: complaint.id, locationId: complaint.location_id },
+          }
+        );
+      }
+
+      if (!isManager) {
+        await notifyManagersAtLocation(
+          complaint.location_id,
+          "complaint_comment",
+          {
+            title: "Uusi viesti complaintissa",
+            body: text,
+            data: { complaintId: complaint.id, locationId: complaint.location_id },
           },
           user?.id ?? null
         );
