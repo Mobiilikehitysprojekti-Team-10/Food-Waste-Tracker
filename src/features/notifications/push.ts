@@ -51,18 +51,27 @@ export async function registerAndSavePushToken(userId: string) {
   const tokenRes = await Notifications.getExpoPushTokenAsync();
   const expoPushToken = tokenRes.data;
 
-  const { error } = await supabase.from("push_tokens").upsert(
-    {
-      user_id: userId,
-      expo_push_token: expoPushToken,
-      platform: Platform.OS,
-      device_name: Device.deviceName ?? null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,expo_push_token" }
-  );
+  // IMPORTANT:
+  // Expo push token is DEVICE-based. If you log into multiple users on the same device,
+  // the same token may otherwise get stored for multiple user_id rows.
+  // That will cause "cross-office" pushes to appear on the wrong account/device.
+  // We force a single-owner policy for a token by deleting existing rows for this token
+  // before inserting/upserting the current user mapping.
+  try {
+    await supabase.from("push_tokens").delete().eq("expo_push_token", expoPushToken);
+  } catch (e) {
+    console.log("[push] token cleanup failed", e);
+  }
 
-  if (error) console.log("[push] upsert error", error);
+  const { error } = await supabase.from("push_tokens").insert({
+    user_id: userId,
+    expo_push_token: expoPushToken,
+    platform: Platform.OS,
+    device_name: Device.deviceName ?? null,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (error) console.log("[push] insert error", error);
 
   return expoPushToken;
 }
@@ -141,7 +150,87 @@ export async function notifyManagers(type: string, payload: NotifyPayload, actor
   const ids = (managers ?? [])
     .map((m) => m.id)
     .filter(Boolean)
-    .filter((id) => !shouldSkipSelf(id, actorUserId)); 
+    .filter((id) => !shouldSkipSelf(id, actorUserId));
 
   await Promise.all(ids.map((id) => notifyUser(id, type, payload)));
+}
+
+
+/**
+ * Nämä apufunktiot varmistavat, että push-ilmoitukset lähetetään
+ * vain käyttäjille, joiden profile.location_id vastaa kyseistä
+ * toimipistettä. Näin estetään toimipisteiden välinen ilmoitusvuoto
+ * ja taataan, että kaikki viestintä pysyy oman toimipisteen
+ * "sandboxin" sisällä.
+ */
+
+async function userIsAtLocation(userId: string, locationId: string) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("location_id")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    console.log("[push] user location fetch failed", error);
+    return false;
+  }
+
+  const userLoc = data?.location_id ?? null;
+  if (!userLoc) return false;
+  return String(userLoc) === String(locationId);
+}
+
+export async function notifyManagersAtLocation(
+  locationId: string | null | undefined,
+  type: string,
+  payload: NotifyPayload,
+  actorUserId?: string | null
+) {
+  if (!locationId) {
+    console.log("[notifyManagersAtLocation] missing locationId, skipping", { type, actorUserId });
+    return;
+  }
+
+  const { data: managers, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("role", "manager")
+    .eq("location_id", locationId);
+
+  if (error) {
+    console.log("[notifyManagersAtLocation] profiles fetch error", error);
+    return;
+  }
+
+  const ids = (managers ?? [])
+    .map((m: any) => m.id)
+    .filter(Boolean)
+    .filter((id: string) => !shouldSkipSelf(id, actorUserId));
+
+  await Promise.all(ids.map((id: string) => notifyUser(id, type, payload)));
+}
+
+export async function notifyUserIfNotSelfAtLocation(
+  recipientUserId: string,
+  actorUserId: string | null | undefined,
+  requiredLocationId: string | null | undefined,
+  type: string,
+  payload: NotifyPayload
+) {
+  if (shouldSkipSelf(recipientUserId, actorUserId)) return;
+
+  if (!requiredLocationId) {
+    console.log("[notifyUserIfNotSelfAtLocation] missing requiredLocationId, skipping", {
+      type,
+      recipientUserId,
+      actorUserId,
+    });
+    return;
+  }
+
+  const ok = await userIsAtLocation(recipientUserId, requiredLocationId);
+  if (!ok) return;
+
+  return notifyUser(recipientUserId, type, payload);
 }

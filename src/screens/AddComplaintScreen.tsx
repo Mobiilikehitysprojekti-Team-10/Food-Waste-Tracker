@@ -1,10 +1,12 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "../lib/supabase";
 import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
 import { AuthContext } from "../context/AuthContext";
-import { notifyManagers } from "../features/notifications/push";
+import { notifyManagersAtLocation } from "../features/notifications/push";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = { navigation: { goBack: () => void } };
 
@@ -14,6 +16,8 @@ type LocationRow = {
   is_active: boolean;
 };
 
+const STORAGE_SELECTED = "menu.selectedLocationId";
+
 export default function AddComplaintScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
@@ -21,7 +25,6 @@ export default function AddComplaintScreen({ navigation }: Props) {
 
   const [locations, setLocations] = useState<LocationRow[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
-  const [locationMenuOpen, setLocationMenuOpen] = useState(false);
 
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
@@ -30,41 +33,66 @@ export default function AddComplaintScreen({ navigation }: Props) {
   const [saving, setSaving] = useState(false);
 
   const selectedLocationName = useMemo(() => {
-    return locations.find((l) => l.id === locationId)?.name ?? t('select_location');
+    if (!locationId) return t("select_location") ?? "Select location";
+    return locations.find((l) => l.id === locationId)?.name ?? `Location #${String(locationId).slice(0, 6)}`;
   }, [locations, locationId, t]);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setLoadingLocations(true);
-      const res = await supabase
-        .from("locations")
-        .select("id,name,is_active")
-        .eq("is_active", true)
-        .order("name");
+  const loadOfficeAndLocations = useCallback(async () => {
+    setLoadingLocations(true);
 
-      if (!alive) return;
+    // lue toimipiste joka on valittu login screenillä
+    const storedSelected = await AsyncStorage.getItem(STORAGE_SELECTED);
 
-      if (res.error) {
-        console.error("locations fetch error:", res.error);
-        setLocations([]);
-        setLocationId(null);
-      } else {
-        const rows = (res.data ?? []) as LocationRow[];
-        setLocations(rows);
-        setLocationId(rows[0]?.id ?? null);
-      }
+    // hae kaikki aktiiviset toimipisteet, jotta voidaan näyttää nimi ja varmistaa että lukittu toimipiste on edelleen validi
+    const res = await supabase
+      .from("locations")
+      .select("id,name,is_active")
+      .eq("is_active", true)
+      .order("name");
+
+    if (res.error) {
+      console.error("locations fetch error:", res.error);
+      setLocations([]);
+      setLocationId(storedSelected ?? null);
       setLoadingLocations(false);
-    })();
-    return () => { alive = false; };
+      return;
+    }
+
+    const rows = (res.data ?? []) as LocationRow[];
+    setLocations(rows);
+
+    // lukitse valittu toimipiste, mutta vain jos se on edelleen aktiivinen / validi
+    const exists = storedSelected ? rows.some((r) => String(r.id) === String(storedSelected)) : false;
+    setLocationId(exists ? String(storedSelected) : null);
+
+    setLoadingLocations(false);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        if (cancelled) return;
+        await loadOfficeAndLocations();
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [loadOfficeAndLocations])
+  );
 
   const canSubmit = useMemo(() => {
     return !!locationId && title.trim().length >= 3 && !saving && !loadingLocations;
   }, [locationId, title, saving, loadingLocations]);
 
   async function onSubmit() {
-    if (!locationId) return;
+    if (!locationId) {
+      Alert.alert(
+        t("select_location") ?? "Select location",
+        t("select_office_before_login") ?? "Go back to login and select an office first."
+      );
+      return;
+    }
     const titleTrim = title.trim();
     const textTrim = text.trim();
     setSaving(true);
@@ -88,13 +116,18 @@ export default function AddComplaintScreen({ navigation }: Props) {
 
       const complaintId = insertRes.data?.id as string | undefined;
 
-      //noti managerille
+      // noti vain saman toimipisteen managereille
       if (complaintId) {
-        await notifyManagers("complaint_new", {
-          title: "Uusi complaint",
-          body: `${titleTrim}`,
-          data: { complaintId, locationId },
-        });
+        await notifyManagersAtLocation(
+          locationId,
+          "complaint_new",
+          {
+            title: "Uusi complaint",
+            body: `${titleTrim}`,
+            data: { complaintId, locationId },
+          },
+          user?.id ?? null
+        );
       }
 
       if (complaintId && textTrim.length > 0) {
@@ -115,49 +148,28 @@ export default function AddComplaintScreen({ navigation }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.label, { color: colors.text }]}>{t('select_location')}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t("location") ?? t("select_location") ?? "Office"}</Text>
 
       {loadingLocations ? (
         <View style={{ paddingVertical: 12 }}>
           <ActivityIndicator color={colors.primary} />
         </View>
+      ) : locationId ? (
+        <View style={[styles.officeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={{ color: colors.text, fontWeight: "700" }}>{selectedLocationName}</Text>
+          <Text style={{ marginTop: 6, color: colors.secondary, fontSize: 12 }}>
+            {t("office_locked") ?? "Office is locked based on your selection on the login screen."}
+          </Text>
+        </View>
       ) : (
-        <>
-          <Pressable style={[styles.dropdownButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => setLocationMenuOpen(true)} disabled={locations.length === 0}>
-            <Text style={[styles.dropdownButtonText, { color: colors.text }]}>{selectedLocationName}</Text>
-            <Text style={[styles.dropdownChevron, { color: colors.text }]}>▾</Text>
-          </Pressable>
-
-          <Modal transparent animationType="fade" visible={locationMenuOpen} onRequestClose={() => setLocationMenuOpen(false)}>
-            <Pressable style={styles.modalOverlay} onPress={() => setLocationMenuOpen(false)}>
-              <Pressable style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>{t('select_location')}</Text>
-
-                <ScrollView style={{ maxHeight: 360 }}>
-                  {locations.map((loc) => {
-                    const selected = loc.id === locationId;
-                    return (
-                      <Pressable
-                        key={loc.id}
-                        onPress={() => {
-                          setLocationId(loc.id);
-                          setLocationMenuOpen(false);
-                        }}
-                        style={[styles.modalItem, selected && { backgroundColor: colors.background }]}
-                      >
-                        <Text style={[styles.modalItemText, { color: colors.text }, selected && styles.modalItemTextSelected]}>{loc.name}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-
-                <Pressable style={[styles.modalClose, { borderTopColor: colors.border }]} onPress={() => setLocationMenuOpen(false)}>
-                  <Text style={[styles.modalCloseText, { color: colors.secondary }]}>{t('cancel')}</Text>
-                </Pressable>
-              </Pressable>
-            </Pressable>
-          </Modal>
-        </>
+        <View style={[styles.officeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={{ color: colors.text, fontWeight: "700" }}>
+            {t("select_location") ?? "Select location"}
+          </Text>
+          <Text style={{ marginTop: 6, color: colors.secondary, fontSize: 12 }}>
+            {t("select_office_before_login") ?? "Go back to login and select an office first."}
+          </Text>
+        </View>
       )}
 
       <Text style={[styles.label, { color: colors.text }]}>{t('header')}</Text>
@@ -193,26 +205,12 @@ export default function AddComplaintScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   label: { fontWeight: "600", marginBottom: 8 },
-  dropdownButton: {
+  officeCard: {
     borderWidth: 1,
     borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
+    padding: 12,
     marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
   },
-  dropdownButtonText: { fontSize: 16 },
-  dropdownChevron: { fontSize: 16, opacity: 0.7 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", padding: 16, justifyContent: "center" },
-  modalCard: { borderRadius: 12, padding: 12, borderWidth: 1 },
-  modalTitle: { fontWeight: "700", marginBottom: 8 },
-  modalItem: { paddingVertical: 12, paddingHorizontal: 10, borderRadius: 10 },
-  modalItemText: { fontSize: 15 },
-  modalItemTextSelected: { fontWeight: "700" },
-  modalClose: { marginTop: 10, alignItems: "center", paddingVertical: 10, borderTopWidth: 1 },
-  modalCloseText: { fontWeight: "600" },
   input: { borderWidth: 1, borderRadius: 12, padding: 12 },
   textArea: { borderWidth: 1, borderRadius: 12, padding: 12, height: 200, textAlignVertical: "top" },
   submit: { marginTop: 12, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: "center" },

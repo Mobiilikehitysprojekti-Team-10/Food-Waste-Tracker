@@ -7,6 +7,7 @@ import { shortText } from "../features/complaints/helpers";
 import { Routes } from "../navigation/routes";
 import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
+import { getSelectedLocationId } from "../location/getSelectedLocationId";
 
 type Props = {
   navigation: { navigate: (route: string, params?: any) => void };
@@ -33,7 +34,7 @@ export default function ComplaintsScreen({ navigation }: Props) {
   const { user } = useContext(AuthContext);
   const { colors } = useTheme();
   const { t } = useLanguage();
-  
+
   const isManager = user?.role === "manager";
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -43,14 +44,31 @@ export default function ComplaintsScreen({ navigation }: Props) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const locRes = await supabase.from("locations").select("id,name,is_active").eq("is_active", true).order("name");
+      const locRes = await supabase
+        .from("locations")
+        .select("id,name,is_active")
+        .eq("is_active", true)
+        .order("name");
+
       if (!locRes.error) {
         const map: Record<string, string> = {};
         (locRes.data as LocationRow[] | null)?.forEach((l) => (map[l.id] = l.name));
         setLocationsMap(map);
       }
 
-      const cRes = await supabase.from("complaints").select("*").is("deleted_at", null).order("created_at", { ascending: false });
+      const selectedLocationId = await getSelectedLocationId();
+      if (!selectedLocationId) {
+        setComplaints([]);
+        return;
+      }
+
+      const cRes = await supabase
+        .from("complaints")
+        .select("*")
+        .eq("location_id", selectedLocationId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
       if (!cRes.error) {
         setComplaints((cRes.data ?? []) as ComplaintRow[]);
       }
@@ -93,16 +111,16 @@ export default function ComplaintsScreen({ navigation }: Props) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {isManager ? (
-        <TextInput 
-          placeholder={t('search')} 
+        <TextInput
+          placeholder={t('search')}
           placeholderTextColor={colors.secondary}
-          value={query} 
-          onChangeText={setQuery} 
-          style={[styles.search, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]} 
+          value={query}
+          onChangeText={setQuery}
+          style={[styles.search, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
         />
       ) : (
-        <Pressable 
-          style={[styles.addBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]} 
+        <Pressable
+          style={[styles.addBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}
           onPress={() => navigation.navigate(Routes.AddComplaint)}
         >
           <Text style={[styles.addBtnText, { color: '#fff' }]}>{t('add_new_complaint')}</Text>

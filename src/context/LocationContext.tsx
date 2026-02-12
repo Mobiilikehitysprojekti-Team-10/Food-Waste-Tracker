@@ -42,6 +42,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
   const consentRef = useRef<boolean | null>(null);
   const isTrackingRef = useRef<boolean>(false);
+  const locationRef = useRef<LastLocation | null>(null);
 
   useEffect(() => {
     consentRef.current = consent;
@@ -50,6 +51,10 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     isTrackingRef.current = isTracking;
   }, [isTracking]);
+
+  useEffect(() => {
+    locationRef.current = location;
+  }, [location]);
 
   function stopForegroundWatch() {
     fgSubscriptionRef.current?.remove();
@@ -69,6 +74,32 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   async function clearCachedLocation() {
     setLocation(null);
     await AsyncStorage.removeItem(STORAGE_LAST_LOCATION);
+  }
+
+  async function fetchAndCacheCurrentPositionOnce() {
+    try {
+      const fg = await Location.getForegroundPermissionsAsync();
+      if (fg.status !== "granted") return null;
+
+      // Älä oleta sijainnin olevan saatavilla, vaikka lupa olisikin annettu. Varmistetaan sijainti.
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const payload: LastLocation = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+        accuracy: loc.coords.accuracy ?? null,
+        timestamp: loc.timestamp,
+      };
+
+      setLocation(payload);
+      await AsyncStorage.setItem(STORAGE_LAST_LOCATION, JSON.stringify(payload));
+      return payload;
+    } catch (e) {
+      console.log("[location] getCurrentPosition failed", e);
+      return null;
+    }
   }
 
   async function hydrateLastLocationIfPermitted() {
@@ -131,7 +162,10 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     if (consentRef.current !== true) return;
 
     const servicesEnabled = await Location.hasServicesEnabledAsync();
-    if (!servicesEnabled) return;
+    if (!servicesEnabled) {
+      console.log("[location] services disabled");
+      return;
+    }
 
     const fg = await Location.getForegroundPermissionsAsync();
     if (fg.status !== "granted") return;
@@ -177,6 +211,12 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
     await hydrateLastLocationIfPermitted();
 
+    // Jos ei ole vielä sijaintia, yritetään hakea se heti. Tämä auttaa LoginScreeniä valitsemaan lähimmän toimipisteen automaattisesti.
+    // Taustalla sijainnin hakeminen saattaa kestää hetken.
+    if (!locationRef.current) {
+      await fetchAndCacheCurrentPositionOnce();
+    }
+
     if (consentRef.current === true) {
       if (!isTrackingRef.current) {
         await startTrackingBestEffort();
@@ -194,7 +234,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
   async function persistConsent(v: boolean) {
     consentRef.current = v;
-  
+
     await AsyncStorage.setItem(STORAGE_CONSENT, String(v));
     setConsentState(v);
   }
@@ -246,6 +286,9 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       await clearCachedLocation();
       return;
     }
+
+    // Hae sijainti ja tallenna se, jotta UI päivittyy ilman että käyttäjän tarvitsee odottaa uutta sijainnin hakua tai app restartia.
+    await fetchAndCacheCurrentPositionOnce();
 
     try {
       await Location.requestBackgroundPermissionsAsync();
