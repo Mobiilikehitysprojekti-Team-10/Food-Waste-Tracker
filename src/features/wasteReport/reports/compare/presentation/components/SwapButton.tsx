@@ -1,10 +1,14 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useTheme } from "../../../../../../context/ThemeContext";
+import { useLanguage } from "../../../../../../context/LanguageContext";
 
 export function SwapButton(props: { onPress: () => void }) {
+  const { colors } = useTheme();
+  const { t } = useLanguage();
   return (
-    <TouchableOpacity style={styles.btn} onPress={props.onPress}>
-      <Text style={styles.text}>Swap A ↔ B</Text>
+    <TouchableOpacity style={[styles.btn, { borderColor: colors.border }]} onPress={props.onPress}>
+      <Text style={[styles.text, { color: colors.text }]}>{t("swap_a_b") ?? "Swap A ↔ B"}</Text>
     </TouchableOpacity>
   );
 }

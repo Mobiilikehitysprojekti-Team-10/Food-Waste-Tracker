@@ -73,7 +73,7 @@ export function GroupedBarChart(props: {
             .reverse()
             .map((t) => (
               <View key={t} style={styles.yTick}>
-                <Text style={[styles.yLabel, { color: colors.textSecondary }]}>{t}</Text>
+                <Text style={[styles.yLabel, { color: colors.text }]}>{t}</Text>
               </View>
             ))}
         </View>
