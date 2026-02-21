@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Platform } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 import { fetchActiveLocations } from "../features/wasteReport/data/fetchLocations";
@@ -18,6 +18,7 @@ import { AuthContext } from "../context/AuthContext";
 
 import { useLocationContext } from "../context/LocationContext";
 import { findNearestWithin } from "../lib/geo";
+import { ThemedSelect } from "../components/ThemedSelect";
 
 export default function WasteReportScreen() {
   const { colors, isDark } = useTheme();
@@ -97,35 +98,33 @@ export default function WasteReportScreen() {
 
       <Text style={[styles.label, { color: colors.text }]}>{t("select_location") ?? "Select location"}</Text>
 
-      <View style={[
-        styles.pickerWrap, 
-        { 
-          borderColor: colors.border ?? colors.text,
-          backgroundColor: colors.card 
-        }
-      ]}>
-        <Picker
-          selectedValue={locationId ?? ""}
-          onValueChange={(v) => setLocationId(String(v))}
-          style={{ color: colors.text, backgroundColor: colors.card }}
-          dropdownIconColor={colors.text} 
-          mode="dropdown" 
-        >
-          <Picker.Item 
-            label={t("select_location") ?? "Select location"} 
-            value="" 
-            color={isDark ? "#FFFFFF" : "#000000"}
-          />
-          {locations.map((l) => (
-            <Picker.Item 
-              key={l.id} 
-              label={l.name} 
-              value={String(l.id)} 
-              color={isDark ? "#FFFFFF" : "#000000"}
-            />
-          ))}
-        </Picker>
-      </View>
+      {Platform.OS === "android" ? (
+        <ThemedSelect
+          value={locationId ?? ""}
+          onChange={(v) => setLocationId(String(v))}
+          placeholder={t("select_location") ?? "Select location"}
+          title={t("select_location") ?? "Select location"}
+          items={locations.map((l) => ({ label: l.name, value: String(l.id) }))}
+        />
+      ) : (
+        <View style={{ borderWidth: 1, borderRadius: 10, borderColor: colors.border, backgroundColor: colors.card, overflow: "hidden" }}>
+          <Picker
+            selectedValue={locationId ?? ""}
+            onValueChange={(v) => setLocationId(String(v))}
+            style={{ color: colors.text }}
+          >
+            <Picker.Item label={t("select_location") ?? "Select location"} value="" color={isDark ? "#FFFFFF" : "#000000"} />
+            {locations.map((l) => (
+              <Picker.Item
+                key={String(l.id)}
+                label={l.name}
+                value={String(l.id)}
+                color={isDark ? "#FFFFFF" : "#000000"}
+              />
+            ))}
+          </Picker>
+        </View>
+      )}
 
       <View style={styles.list}>
         {WASTE_TYPES.map(({ type, label }) => (
