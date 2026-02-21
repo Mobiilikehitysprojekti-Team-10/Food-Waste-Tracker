@@ -25,7 +25,7 @@ export function ComparisonTable(props: {
       </View>
 
       {props.rows.map((r, i) => {
-        const diffStyle = r.diff > 0 ? { color: colors.success, fontWeight: "700" } : r.diff < 0 ? { color: colors.error, fontWeight: "700" } : null;
+        const diffStyle = r.diff > 0 ? styles.pos : r.diff < 0 ? styles.neg : null;
 
         return (
           <View key={i} style={[styles.row, { borderColor: colors.border }]}>
@@ -52,4 +52,6 @@ const styles = StyleSheet.create({
   header: { },
   cell: { flex: 1, padding: 10 },
   headerCell: { fontWeight: "700" },
+  pos: { color: "green", fontWeight: "700" },
+  neg: { color: "red", fontWeight: "700" },
 });

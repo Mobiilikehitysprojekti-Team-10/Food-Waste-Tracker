@@ -9,9 +9,7 @@ export const Colors = {
     card: '#f9f9f9',
     border: '#000000',
     primary: '#4630EB',
-    secondary: '#666666',
-    success: 'green',
-    error: 'red'
+    secondary: '#666666'
   },
   dark: {
     background: '#2c2f33', 
@@ -19,9 +17,7 @@ export const Colors = {
     card: '#23272a',   
     border: '#4f545c',    
     primary: '#5865f2',    
-    secondary: '#b9bbbe',
-    success: '#a3be8c', 
-    error: '#bf616a'
+    secondary: '#b9bbbe'   
   }
 };
 
@@ -58,7 +54,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     colors: isDark ? Colors.dark : Colors.light,
     toggleTheme,
   };
-  console.log(`ThemeContext: isDark=${isDark}, colors.text=${theme.colors.text}, colors.textSecondary=${theme.colors.secondary}`);
 
   return (
     <ThemeContext.Provider value={theme}>

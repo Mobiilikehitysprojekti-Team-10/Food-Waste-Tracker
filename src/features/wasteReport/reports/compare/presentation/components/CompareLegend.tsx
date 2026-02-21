@@ -1,13 +1,11 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useTheme } from "../../../../../../context/ThemeContext";
 
 export function CompareLegend(props: { aLabel: string; bLabel: string }) {
-  const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.text, { color: colors.textSecondary }]}>A: {props.aLabel}</Text>
-      <Text style={[styles.text, { color: colors.textSecondary }]}>B: {props.bLabel}</Text>
+      <Text style={styles.text}>A: {props.aLabel}</Text>
+      <Text style={styles.text}>B: {props.bLabel}</Text>
     </View>
   );
 }
@@ -18,6 +16,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 13,
+    color: "#666",
     fontWeight: "600",
   },
 });

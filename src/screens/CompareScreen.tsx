@@ -66,8 +66,8 @@ export default function CompareScreen() {
   const effectiveRangeA = presetId === "custom" ? custom.rangeA : preset.rangeA;
   const effectiveRangeB = presetId === "custom" ? custom.rangeB : preset.rangeB;
 
-  const aLabel = presetId === "custom" ? `A (${custom.rangeA?.label ?? ''})` : preset.aLabel;
-  const bLabel = presetId === "custom" ? `B (${custom.rangeB?.label ?? ''})` : preset.bLabel;
+  const aLabel = presetId === "custom" ? `A (${custom.rangeA.label})` : preset.aLabel;
+  const bLabel = presetId === "custom" ? `B (${custom.rangeB.label})` : preset.bLabel;
 
   const { aTotals, bTotals, loading, error } = useComparisonTotals({
     locationIds,

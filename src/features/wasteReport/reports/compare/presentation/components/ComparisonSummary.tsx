@@ -27,7 +27,7 @@ export function ComparisonSummary(props: {
     return { aTotal, bTotal, diffTotal, diffPct };
   }, [props.aTotals, props.bTotals, props.wasteTypes]);
 
-  const diffStyle = diffTotal > 0 ? { color: colors.success } : diffTotal < 0 ? { color: colors.error } : null;
+  const diffStyle = diffTotal > 0 ? styles.pos : diffTotal < 0 ? styles.neg : null;
 
   return (
     <View style={[styles.card, { borderColor: colors.border }]}>
@@ -65,4 +65,6 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: "700" },
   value: { fontSize: 14, fontWeight: "700" },
   divider: { paddingTop: 8, marginTop: 4, borderTopWidth: 1 },
+  pos: { color: "green" },
+  neg: { color: "red" },
 });

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { useTheme } from "../../../../../../context/ThemeContext";
 
 type Props = {
   visible: boolean;
@@ -17,8 +16,6 @@ function isValidDate(d: any): d is Date {
 
 export function DayPickerModal(props: Props) {
   const safeValue = useMemo(() => (isValidDate(props.value) ? props.value : new Date()), [props.value]);
-
-  const { colors, isDark } = useTheme();
 
   const [draft, setDraft] = useState<Date>(safeValue);
 
@@ -50,8 +47,8 @@ export function DayPickerModal(props: Props) {
       onRequestClose={props.onClose}
     >
       <Pressable style={styles.backdrop} onPress={props.onClose}>
-        <Pressable style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
-          <Text style={[styles.title, { color: colors.text }]}>{props.title}</Text>
+        <Pressable style={styles.card} onPress={() => {}}>
+          <Text style={styles.title}>{props.title}</Text>
 
           {/* Älä käytä overflow: hidden tässä, se leikkaa kalenteria */}
           <View style={styles.pickerWrap}>
@@ -61,7 +58,7 @@ export function DayPickerModal(props: Props) {
               display="spinner"
               onChange={onChangeInternal}
               style={styles.picker}
-              textColor={isDark ? "#FFFFFF" : "#000000"}
+              textColor="#000"
             />
           </View>
 
@@ -71,9 +68,9 @@ export function DayPickerModal(props: Props) {
                 props.onChange(draft);
                 props.onClose();
               }}
-              style={[styles.btn, { borderColor: colors.border }]}
+              style={styles.btn}
             >
-              <Text style={[styles.btnText, { color: colors.text }]}>Done</Text>
+              <Text style={styles.btnText}>Done</Text>
             </Pressable>
           </View>
         </Pressable>

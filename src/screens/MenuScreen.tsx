@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View, Platform } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -14,7 +14,6 @@ import type { WeekdayKey } from "../features/menu/domain/menuTypes";
 
 import { useLocationContext } from "../context/LocationContext";
 import { findNearestWithin } from "../lib/geo";
-import { ThemedSelect } from "../components/ThemedSelect";
 
 const STORAGE_KEY = "menu.selectedLocationId";
 
@@ -155,41 +154,44 @@ return (
           : ""}
       </Text>
 
-      {Platform.OS === "android" ? (
-        <ThemedSelect
-          value={locationId ?? ""}
-          onChange={(v) => {
-            const id = String(v);
-            if (!id) return;
-            onSelectLocation(id);
-          }}
-          placeholder={String(t("select_location") ?? "Select location")}
-          title={String(t("select_location") ?? "Select location")}
-          items={locations.map((l: any) => ({ label: String(l.name), value: String(l.id) }))}
-        />
-      ) : (
-        <View style={{ borderWidth: 1, borderRadius: 10, borderColor: colors.border, backgroundColor: colors.card, overflow: "hidden" }}>
-          <Picker
-            selectedValue={locationId ?? ""}
-            onValueChange={(v) => {
-              const id = String(v);
-              if (!id) return;
-              onSelectLocation(id);
-            }}
-            style={{ color: colors.text }}
-          >
-            <Picker.Item label={String(t("select_location") ?? "Select location")} value="" color={isDark ? "#FFFFFF" : "#000000"} />
-            {locations.map((l: any) => (
-              <Picker.Item
-                key={String(l.id)}
-                label={String(l.name)}
-                value={String(l.id)}
-                color={isDark ? "#FFFFFF" : "#000000"}
-              />
-            ))}
-          </Picker>
-        </View>
-      )}
+<View style={{
+  borderWidth: 1,
+  borderColor: colors.border,
+  borderRadius: 8,
+  marginBottom: 12,
+  backgroundColor: colors.card,
+  overflow: 'hidden'
+}}>
+  <Picker
+    selectedValue={locationId ?? ""}
+    onValueChange={(v) => {
+      const id = String(v);
+      if (!id) return;
+      onSelectLocation(id);
+    }}
+
+    style={{
+      color: colors.text,
+      backgroundColor: colors.card
+    }}
+    dropdownIconColor={colors.text}
+    mode="dropdown"
+  >
+    <Picker.Item
+      label={String(t("select_location") ?? "Select location")}
+      value=""
+      color={isDark ? "#FFFFFF" : "#000000"}
+    />
+    {locations.map((l: any) => (
+      <Picker.Item
+        key={String(l.id)}
+        label={String(l.name)}
+        value={String(l.id)}
+        color={isDark ? "#FFFFFF" : "#000000"}
+      />
+    ))}
+  </Picker>
+</View>
 
       {/* PÄIVÄVALITSIN */}
       <View style={{ flexDirection: "row", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
